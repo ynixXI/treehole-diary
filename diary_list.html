@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>日记列表 - 树洞日记网</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:"微软雅黑",sans-serif;
+            background-color: #E0E0E0;
+            background-image: url('https://aka.doubaocdn.com/s/RDj01wVYDu');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .nav{
+            background:#3A5F56;
+            padding:18px;text-align:center;
+        }
+        .nav a{
+            color:#fff;
+            text-decoration:none;
+            font-size:18px;
+            margin:0 20px;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        .nav a:hover{text-decoration:underline;}
+        .container{
+            width:900px;
+            margin:40px auto;
+            background: rgba(240, 240, 240, 0.85);
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 0 8px rgba(0, 0, 0, 0.15);
+        }
+        h2{text-align:center;color:#333333;margin-bottom:25px;}
+        .diary-list{margin-top:20px;}
+        .diary-item{
+            border-bottom:1px solid #ccc;
+            padding:15px 0;
+            color:#555555;
+            margin-bottom: 15px;
+        }
+        .diary-date {
+            font-weight: bold;
+            color: #333333;
+            margin-bottom: 5px;
+        }
+        .diary-content {
+            line-height: 1.6;
+        }
+        .delete-btn {
+            float: right;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+        }
+        .footer{text-align:center;padding:20px;color:#555555;margin-top:50px;}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="diary.html">写日记</a>
+        <a href="diary_list.html">日记列表</a>
+        <a href="treehole.html">匿名树洞</a>
+        <a href="about.html">关于本站</a>
+    </div>
+
+    <div class="container">
+        <h2>我的日记列表</h2>
+        <div class="diary-list" id="diaryList">
+            <!-- 日记列表将在这里动态生成 -->
+        </div>
+    </div>
+
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
+
+    <script>
+        // 页面加载时加载日记
+        window.onload = loadDiaries;
+
+        function loadDiaries() {
+            let diaryList = document.getElementById("diaryList");
+            let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+
+            // 清空列表
+            diaryList.innerHTML = "";
+
+            // 如果没有日记，显示提示
+            if (diaries.length === 0) {
+                diaryList.innerHTML = "<p class='empty-tip'>暂无日记，快去写一篇吧！</p>";
+                return;
+            }
+
+            // 倒序显示日记（最新的在最上面）
+            diaries.reverse().forEach((diary, index) => {
+                let diaryItem = document.createElement('div');
+                diaryItem.className = 'diary-item';
+                diaryItem.innerHTML = `
+                    <div class="diary-date">${diary.date}</div>
+                    <div class="diary-content">${diary.content}</div>
+                    <button class="delete-btn" onclick="deleteDiary(${diaries.length - 1 - index})">删除</button>
+                `;
+                diaryList.appendChild(diaryItem);
+            });
+        }
+
+        function deleteDiary(index) {
+            if (confirm("确定要删除这篇日记吗？")) {
+                let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+                // 因为显示时是倒序的，所以需要转换索引
+                let originalIndex = diaries.length - 1 - index;
+                diaries.splice(originalIndex, 1);
+                localStorage.setItem('diaries', JSON.stringify(diaries));
+                loadDiaries();
+            }
+        }
+    </script>
+</body>
+</html>

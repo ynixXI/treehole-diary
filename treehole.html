@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>匿名树洞 - 树洞日记网</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:"微软雅黑",sans-serif;
+            background-color: #F0FFF4;
+            background-image: url('https://aka.doubaocdn.com/s/hhiL1wVYM5');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .nav{
+            background:#6EE7B7;
+            padding:18px;text-align:center;
+        }
+        .nav a{
+            color:#fff;
+            text-decoration:none;
+            font-size:18px;
+            margin:0 20px;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        .nav a:hover{text-decoration:underline;}
+        .container{
+            width:900px;
+            margin:40px auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(110, 231, 183, 0.15);
+        }
+        h2{text-align:center;color:#374151;margin-bottom:25px;}
+        .post-form textarea{
+            width:100%;
+            height:120px;
+            padding:15px;
+            border:1px solid #D1FAE5;
+            border-radius:4px;
+            resize:none;
+            margin-bottom:15px;
+            font-family:"微软雅黑",sans-serif;
+        }
+        button{
+            padding:10px 25px;
+            background:#6EE7B7;
+            color:#fff;
+            border:none;
+            border-radius:4px;
+            cursor:pointer;
+            font-family:"微软雅黑",sans-serif;
+        }
+        button:hover{background:#34D399;}
+        .posts-list {
+            margin-top: 40px;
+        }
+        .post-item{
+            border:1px solid #D1FAE5;
+            padding:20px;
+            border-radius:6px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .post-meta {
+            font-size: 12px;
+            color: #6B7280;
+            margin-bottom: 10px;
+        }
+        .post-content{
+            color:#374151;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .post-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .action-btn {
+            background: none;
+            border: none;
+            color: #6B7280;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 0;
+        }
+        .action-btn:hover {
+            color: #34D399;
+        }
+        .action-btn.liked {
+            color: #ef4444;
+        }
+        .delete-btn {
+            background-color: #ef4444;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+        .comments-section {
+            border-top: 1px dashed #D1FAE5;
+            padding-top: 15px;
+        }
+        .comment-item {
+            background: #F0FFF4;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #4B5563;
+        }
+        .comment-meta {
+            font-size: 11px;
+            color: #9CA3AF;
+            margin-bottom: 5px;
+        }
+        .comment-form {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .comment-form textarea {
+            flex-grow: 1;
+            height: 60px;
+            padding: 10px;
+            border: 1px solid #D1FAE5;
+            border-radius: 4px;
+            resize: none;
+            font-family:"微软雅黑",sans-serif;
+        }
+        .comment-form button {
+            padding: 10px 20px;
+            align-self: flex-end;
+        }
+        .footer{text-align:center;padding:20px;color:#4B5563;margin-top:50px;}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="diary.html">写日记</a>
+        <a href="diary_list.html">日记列表</a>
+        <a href="treehole.html">匿名树洞</a>
+        <a href="about.html">关于本站</a>
+    </div>
+
+    <div class="container">
+        <h2>匿名树洞 · 随心倾诉</h2>
+        
+        <!-- 发帖表单 -->
+        <div class="post-form">
+            <textarea id="postContent" placeholder="匿名写下你的心事，所有人都看不到你的真实身份..."></textarea>
+            <button onclick="publishPost()">匿名发布</button>
+        </div>
+
+        <!-- 帖子列表 -->
+        <div class="posts-list" id="postsList">
+            <!-- 帖子将在这里动态生成 -->
+        </div>
+    </div>
+
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
+
+    <script>
+        // 页面加载时渲染帖子
+        window.onload = renderPosts;
+
+        // 生成唯一ID
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // 获取或创建用户ID
+        function getOrCreateUserId() {
+            let userId = localStorage.getItem('treeholeUserId');
+            if (!userId) {
+                userId = generateUUID();
+                localStorage.setItem('treeholeUserId', userId);
+            }
+            return userId;
+        }
+
+        // 获取所有帖子
+        function getPosts() {
+            return JSON.parse(localStorage.getItem('treeholePosts')) || [];
+        }
+
+        // 保存帖子
+        function savePosts(posts) {
+            localStorage.setItem('treeholePosts', JSON.stringify(posts));
+        }
+
+        // 发布帖子
+        function publishPost() {
+            const content = document.getElementById('postContent').value.trim();
+            if (!content) {
+                alert('树洞内容不能为空！');
+                return;
+            }
+
+            const posts = getPosts();
+            const newPost = {
+                id: generateUUID(),
+                content: content,
+                authorId: getOrCreateUserId(),
+                createdAt: new Date().toLocaleString(),
+                likes: [],
+                comments: []
+            };
+
+            posts.unshift(newPost); // 添加到最前面
+            savePosts(posts);
+            renderPosts();
+            document.getElementById('postContent').value = '';
+            alert('发布成功！');
+        }
+
+        // 渲染帖子列表
+        function renderPosts() {
+            const postsList = document.getElementById('postsList');
+            const posts = getPosts();
+            const currentUserId = getOrCreateUserId();
+
+            postsList.innerHTML = '';
+
+            if (posts.length === 0) {
+                postsList.innerHTML = '<p style="text-align: center; color: #888;">还没有帖子，快来发布第一个吧！</p>';
+                return;
+            }
+
+            posts.forEach(post => {
+                const isLiked = post.likes.includes(currentUserId);
+                const isAuthor = post.authorId === currentUserId;
+
+                const postElement = document.createElement('div');
+                postElement.className = 'post-item';
+                postElement.innerHTML = `
+                    <div class="post-meta">发布于 ${post.createdAt}</div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-actions">
+                        <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="likePost('${post.id}')">
+                            <span>❤️</span> ${post.likes.length}
+                        </button>
+                        <button class="action-btn comment-btn" onclick="toggleCommentForm('${post.id}')">
+                            <span>💬</span> ${post.comments.length}
+                        </button>
+                        ${isAuthor ? `<button class="delete-btn" onclick="deletePost('${post.id}')">删除</button>` : ''}
+                    </div>
+                    <div class="comments-section" id="comments-${post.id}">
+                        ${renderComments(post.comments)}
+                        <div class="comment-form" id="comment-form-${post.id}" style="display: none;">
+                            <textarea placeholder="写下你的匿名评论..."></textarea>
+                            <button onclick="postComment('${post.id}')">发表</button>
+                        </div>
+                    </div>
+                `;
+                postsList.appendChild(postElement);
+            });
+        }
+
+        // 渲染评论
+        function renderComments(comments) {
+            if (comments.length === 0) return '';
+            return comments.map(comment => `
+                <div class="comment-item">
+                    <div class="comment-meta">匿名用户 评论于 ${comment.createdAt}</div>
+                    <div class="comment-content">${comment.content}</div>
+                </div>
+            `).join('');
+        }
+
+        // 点赞帖子
+        function likePost(postId) {
+            const posts = getPosts();
+            const userId = getOrCreateUserId();
+            const post = posts.find(p => p.id === postId);
+            
+            if (post) {
+                const likeIndex = post.likes.indexOf(userId);
+                if (likeIndex > -1) {
+                    post.likes.splice(likeIndex, 1); // 取消点赞
+                } else {
+                    post.likes.push(userId); // 添加点赞
+                }
+                savePosts(posts);
+                renderPosts();
+            }
+        }
+
+        // 切换评论表单显示
+        function toggleCommentForm(postId) {
+            const form = document.getElementById(`comment-form-${postId}`);
+            form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        // 发布评论
+        function postComment(postId) {
+            const form = document.getElementById(`comment-form-${postId}`);
+            const textarea = form.querySelector('textarea');
+            const content = textarea.value.trim();
+            
+            if (!content) {
+                alert('评论内容不能为空！');
+                return;
+            }
+
+            const posts = getPosts();
+            const post = posts.find(p => p.id === postId);
+            
+            if (post) {
+                post.comments.push({
+                    content: content,
+                    createdAt: new Date().toLocaleString()
+                });
+                savePosts(posts);
+                renderPosts();
+                textarea.value = '';
+                form.style.display = 'none';
+            }
+        }
+
+        // 删除帖子
+        function deletePost(postId) {
+            if (confirm('确定要删除这个帖子吗？')) {
+                let posts = getPosts();
+                posts = posts.filter(p => p.id !== postId);
+                savePosts(posts);
+                renderPosts();
+            }
+        }
+    </script>
+</body>
+</html>
+功能更新说明：

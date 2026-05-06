@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>写日记 - 树洞日记网</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:"微软雅黑",sans-serif;
+            background-color: #E0E0E0;
+            background-image: url('https://aka.doubaocdn.com/s/RDj01wVYDu');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .nav{
+            background:#3A5F56;
+            padding:18px;text-align:center;
+        }
+        .nav a{
+            color:#fff;
+            text-decoration:none;
+            font-size:18px;
+            margin:0 20px;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        .nav a:hover{text-decoration:underline;}
+        .container{
+            width:900px;
+            margin:40px auto;
+            background: rgba(240, 240, 240, 0.85);
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 0 8px rgba(0, 0, 0, 0.15);
+        }
+        h2{text-align:center;color:#333333;margin-bottom:25px;}
+        textarea{width:100%;height:200px;padding:15px;border:1px solid #ccc;border-radius:4px;resize:none;}
+        button{
+            margin-top:15px;
+            padding:10px 30px;
+            background:#3A5F56;
+            color:#fff;
+            border:none;
+            border-radius:4px;
+            cursor:pointer;
+        }
+        button:hover{background:#2D4A43;}
+        .footer{text-align:center;padding:20px;color:#555555;margin-top:50px;}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="diary.html">写日记</a>
+        <a href="diary_list.html">日记列表</a>
+        <a href="treehole.html">匿名树洞</a>
+        <a href="about.html">关于本站</a>
+    </div>
+
+    <div class="container">
+        <h2>写下你的心情日记</h2>
+        <textarea id="diaryContent" placeholder="请在这里写下今日日记..."></textarea>
+        <br>
+        <button onclick="saveDiary()">保存日记</button>
+    </div>
+
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
+
+    <script>
+        function saveDiary() {
+            let content = document.getElementById("diaryContent").value;
+            if (content.trim() === "") {
+                alert("日记内容不能为空！");
+                return;
+            }
+
+            // 获取当前日期
+            let now = new Date();
+            let dateString = now.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'long'
+            });
+
+            // 从localStorage获取现有日记
+            let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
+
+            // 添加新日记
+            diaries.push({
+                date: dateString,
+                content: content
+            });
+
+            // 保存回localStorage
+            localStorage.setItem('diaries', JSON.stringify(diaries));
+
+            alert("日记保存成功！你可以去「日记列表」查看。");
+            document.getElementById("diaryContent").value = "";
+        }
+    </script>
+</body>
+</html>

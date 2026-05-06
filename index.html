@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Treehole Diary | 树洞日记网</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:"微软雅黑",sans-serif;
+            background-color: #FDF6ED;
+            /* 添加温馨的背景图 */
+            background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .nav{background:#C85E44;padding:18px;text-align:center;}
+        .nav a{
+            color:#fff;
+            text-decoration:none;
+            font-size:18px;
+            margin:0 20px;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        .nav a:hover{text-decoration:underline;}
+        .banner{
+            /* 使用半透明背景，既能看到背景图，又能保证文字清晰 */
+            background: rgba(254, 251, 246, 0.9);
+            padding:60px 0;
+            text-align:center;
+        }
+        .banner h1{color:#5D4037;margin-bottom:10px;font-size: 2.5em;}
+        .banner p{color:#8D6E63;}
+        .wrap{width:1000px;margin:50px auto;display:flex;justify-content:space-around;}
+        .card{
+            width:45%;
+            /* 使用半透明背景，与banner保持一致 */
+            background: rgba(254, 251, 246, 0.9);
+            padding:0;
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(200, 94, 68, 0.15);
+            overflow: hidden;
+        }
+        .card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        .card-content {
+            padding: 30px;
+            text-align: center;
+        }
+        .card h2{color:#C85E44;margin-bottom:15px;}
+        .card p{color:#8D6E63;margin-bottom:25px;line-height: 1.6;}
+        .card a{background:#C85E44;color:#fff;padding:12px 30px;text-decoration:none;border-radius:4px;display: inline-block;}
+        .card a:hover{background:#A14E3A;}
+        .footer{text-align:center;padding:20px;color:#8D6E63;margin-top:50px;}
+        
+        /* 标题两侧的动物图片样式 */
+        .title-animal {
+            width: 80px;
+            height: auto;
+            vertical-align: middle;
+            margin: 0 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="diary.html">写日记</a>
+        <a href="diary_list.html">日记列表</a>
+        <a href="treehole.html">匿名树洞</a>
+        <a href="about.html">关于本站</a>
+    </div>
+
+    <div class="banner">
+        <h1>
+            <img src="https://aka.doubaocdn.com/s/xy861wVXkl" alt="可爱的猫咪" class="title-animal">
+            树洞日记网 Treehole Diary
+            <img src="https://aka.doubaocdn.com/s/lal11wVXyM" alt="可爱的兔子" class="title-animal">
+        </h1>
+        <p>记录生活点滴 | 匿名倾诉心事 | 温柔匿名评论</p>
+    </div>
+
+    <div class="wrap">
+        <div class="card">
+            <img src="https://aka.doubaocdn.com/s/WRRh1wVXeb" alt="个人日记" class="card-img">
+            <div class="card-content">
+                <h2>个人日记</h2>
+                <p>写下专属日记，珍藏每一天心情</p>
+                <a href="diary.html">进入日记</a>
+            </div>
+        </div>
+        <div class="card">
+            <img src="https://aka.doubaocdn.com/s/8UiK1wVXeZ" alt="匿名树洞" class="card-img">
+            <div class="card-content">
+                <h2>匿名树洞</h2>
+                <p>匿名发帖、匿名评论，无人知晓身份</p>
+                <a href="treehole.html">进入树洞</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
+</body>
+</html>
