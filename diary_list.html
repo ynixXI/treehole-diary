@@ -79,6 +79,7 @@
         <a href="diary_list.html">日记列表</a>
         <a href="treehole.html">匿名树洞</a>
         <a href="about.html">关于本站</a>
+        <span id="userLinks"></span>
     </div>
 
     <div class="container">
@@ -93,40 +94,88 @@
     </div>
 
     <script>
-        // 页面加载时加载日记
-        window.onload = loadDiaries;
+        // 页面加载时检查登录状态并加载日记
+        window.onload = function() {
+            updateUserLinks();
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+            } else {
+                loadDiaries();
+            }
+        };
 
+        // 检查用户是否登录
+        function checkLoginStatus() {
+            return !!JSON.parse(localStorage.getItem('currentUser'));
+        }
+
+        // 重定向到登录页面
+        function redirectToLogin() {
+            alert('请先登录！');
+            window.location.href = 'login.html';
+        }
+
+        // 更新用户链接
+        function updateUserLinks() {
+            const userLinks = document.getElementById('userLinks');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser) {
+                userLinks.innerHTML = `
+                    <a href="profile.html">个人中心 (${currentUser.username})</a>
+                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+                `;
+            } else {
+                userLinks.innerHTML = `
+                    <a href="login.html">登录</a>
+                    <a href="register.html">注册</a>
+                `;
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('currentUser');
+                updateUserLinks();
+                alert('已退出登录');
+            }
+        }
+
+        // 加载日记
         function loadDiaries() {
             let diaryList = document.getElementById("diaryList");
             let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
 
-            // 清空列表
             diaryList.innerHTML = "";
 
-            // 如果没有日记，显示提示
             if (diaries.length === 0) {
                 diaryList.innerHTML = "<p class='empty-tip'>暂无日记，快去写一篇吧！</p>";
                 return;
             }
 
-            // 倒序显示日记（最新的在最上面）
-            diaries.reverse().forEach((diary, index) => {
+            // 创建一个倒序的副本用于显示
+            const reversedDiaries = [...diaries].reverse();
+            
+            reversedDiaries.forEach((diary, index) => {
                 let diaryItem = document.createElement('div');
                 diaryItem.className = 'diary-item';
+                // 传递原始数组的索引，而不是倒序后的索引
+                const originalIndex = diaries.length - 1 - index;
                 diaryItem.innerHTML = `
                     <div class="diary-date">${diary.date}</div>
                     <div class="diary-content">${diary.content}</div>
-                    <button class="delete-btn" onclick="deleteDiary(${diaries.length - 1 - index})">删除</button>
+                    <button class="delete-btn" onclick="deleteDiary(${originalIndex})">删除</button>
                 `;
                 diaryList.appendChild(diaryItem);
             });
         }
 
-        function deleteDiary(index) {
+        // 删除日记
+        function deleteDiary(originalIndex) {
             if (confirm("确定要删除这篇日记吗？")) {
                 let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
-                // 因为显示时是倒序的，所以需要转换索引
-                let originalIndex = diaries.length - 1 - index;
+                // 直接使用原始索引删除
                 diaries.splice(originalIndex, 1);
                 localStorage.setItem('diaries', JSON.stringify(diaries));
                 loadDiaries();

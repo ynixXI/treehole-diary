@@ -56,6 +56,7 @@
         <a href="diary_list.html">日记列表</a>
         <a href="treehole.html">匿名树洞</a>
         <a href="about.html">关于本站</a>
+        <span id="userLinks"></span>
     </div>
 
     <div class="container">
@@ -70,14 +71,62 @@
     </div>
 
     <script>
+        // 页面加载时检查登录状态
+        window.onload = function() {
+            updateUserLinks();
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+            }
+        };
+
+        // 检查用户是否登录
+        function checkLoginStatus() {
+            return !!JSON.parse(localStorage.getItem('currentUser'));
+        }
+
+        // 重定向到登录页面
+        function redirectToLogin() {
+            alert('请先登录！');
+            window.location.href = 'login.html';
+        }
+
+        // 更新用户链接
+        function updateUserLinks() {
+            const userLinks = document.getElementById('userLinks');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser) {
+                userLinks.innerHTML = `
+                    <a href="profile.html">个人中心 (${currentUser.username})</a>
+                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+                `;
+            } else {
+                userLinks.innerHTML = `
+                    <a href="login.html">登录</a>
+                    <a href="register.html">注册</a>
+                `;
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('currentUser');
+                updateUserLinks();
+                alert('已退出登录');
+            }
+        }
+
+        // 保存日记
         function saveDiary() {
+            if (!checkLoginStatus()) return;
+
             let content = document.getElementById("diaryContent").value;
             if (content.trim() === "") {
                 alert("日记内容不能为空！");
                 return;
             }
 
-            // 获取当前日期
             let now = new Date();
             let dateString = now.toLocaleDateString('zh-CN', {
                 year: 'numeric',
@@ -86,16 +135,11 @@
                 weekday: 'long'
             });
 
-            // 从localStorage获取现有日记
             let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
-
-            // 添加新日记
             diaries.push({
                 date: dateString,
                 content: content
             });
-
-            // 保存回localStorage
             localStorage.setItem('diaries', JSON.stringify(diaries));
 
             alert("日记保存成功！你可以去「日记列表」查看。");

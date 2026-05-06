@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>用户注册 - 树洞日记网</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:"微软雅黑",sans-serif;
+            background-color: #FDF6ED;
+            background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .nav{
+            background:#C85E44;
+            padding:18px;text-align:center;
+        }
+        .nav a{
+            color:#fff;
+            text-decoration:none;
+            font-size:18px;
+            margin:0 20px;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        .nav a:hover{text-decoration:underline;}
+        .container{
+            width: 400px;
+            margin: 50px auto;
+            background: rgba(254, 251, 246, 0.9);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(200, 94, 68, 0.15);
+        }
+        h2{text-align:center;color:#5D4037;margin-bottom:25px;}
+        .form-group{margin-bottom:20px;}
+        label{display:block;margin-bottom:8px;color:#8D6E63;}
+        input{
+            width:100%;
+            padding:10px;
+            border:1px solid #ddd;
+            border-radius:4px;
+            font-family:"微软雅黑",sans-serif;
+        }
+        button{
+            width:100%;
+            padding:12px;
+            background:#C85E44;
+            color:#fff;
+            border:none;
+            border-radius:4px;
+            cursor:pointer;
+            font-family:"微软雅黑",sans-serif;
+        }
+        button:hover{background:#A14E3A;}
+        .login-link{text-align:center;margin-top:15px;color:#8D6E63;}
+        .login-link a{color:#C85E44;text-decoration:none;}
+        .login-link a:hover{text-decoration:underline;}
+        .footer{text-align:center;padding:20px;color:#8D6E63;margin-top:50px;}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="login.html">登录</a>
+        <a href="register.html">注册</a>
+    </div>
+
+    <div class="container">
+        <h2>用户注册</h2>
+        <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" id="username" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" id="password" placeholder="请输入密码">
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">确认密码</label>
+            <input type="password" id="confirmPassword" placeholder="请再次输入密码">
+        </div>
+        <button onclick="register()">注册</button>
+        <div class="login-link">
+            已有账号？<a href="login.html">立即登录</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
+
+    <script>
+        // 简单的哈希函数（实际项目中请使用更安全的库）
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return hash.toString(16);
+        }
+
+        // 获取所有用户
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('users')) || [];
+        }
+
+        // 保存用户
+        function saveUsers(users) {
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        // 检查用户名是否已存在
+        function isUsernameTaken(username) {
+            const users = getUsers();
+            return users.some(user => user.username === username);
+        }
+
+        // 注册函数
+        function register() {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!username) {
+                alert('用户名不能为空！');
+                return;
+            }
+
+            if (isUsernameTaken(username)) {
+                alert('用户名已存在！');
+                return;
+            }
+
+            if (password.length < 6) {
+                alert('密码长度不能少于6位！');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('两次输入的密码不一致！');
+                return;
+            }
+
+            // 创建新用户
+            const newUser = {
+                userId: Date.now().toString(), // 使用时间戳作为简单的唯一ID
+                username: username,
+                passwordHash: simpleHash(password), // 存储哈希后的密码
+                createdAt: new Date().toLocaleString()
+            };
+
+            const users = getUsers();
+            users.push(newUser);
+            saveUsers(users);
+
+            alert('注册成功！请登录。');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

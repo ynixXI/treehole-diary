@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>个人中心 - 树洞日记网</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:"微软雅黑",sans-serif;
+            background-color: #FDF6ED;
+            background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .nav{
+            background:#C85E44;
+            padding:18px;text-align:center;
+        }
+        .nav a{
+            color:#fff;
+            text-decoration:none;
+            font-size:18px;
+            margin:0 20px;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        .nav a:hover{text-decoration:underline;}
+        .container{
+            width: 900px;
+            margin: 40px auto;
+            display: flex;
+            gap: 30px;
+        }
+        .profile-card {
+            width: 30%;
+            background: rgba(254, 251, 246, 0.9);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(200, 94, 68, 0.15);
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #C85E44;
+            color: white;
+            font-size: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .profile-username {
+            font-size: 24px;
+            color: #5D4037;
+            margin-bottom: 10px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #C85E44;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #8D6E63;
+        }
+        .posts-section {
+            flex-grow: 1;
+            background: rgba(254, 251, 246, 0.9);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(200, 94, 68, 0.15);
+        }
+        .section-title {
+            font-size: 20px;
+            color: #5D4037;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .post-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        .post-meta {
+            font-size: 12px;
+            color: #8D6E63;
+            margin-bottom: 10px;
+        }
+        .post-content {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .post-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .likes-count {
+            color: #C85E44;
+            font-weight: bold;
+        }
+        .delete-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626;
+        }
+        .empty-tip {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+        }
+        .footer{text-align:center;padding:20px;color:#8D6E63;margin-top:50px;}
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="diary.html">写日记</a>
+        <a href="diary_list.html">日记列表</a>
+        <a href="treehole.html">匿名树洞</a>
+        <a href="about.html">关于本站</a>
+        <span id="userLinks"></span>
+    </div>
+
+    <div class="container">
+        <!-- 用户信息卡片 -->
+        <div class="profile-card">
+            <div class="profile-avatar" id="avatar">U</div>
+            <div class="profile-username" id="username">用户名</div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="postCount">0</div>
+                    <div class="stat-label">发布帖子</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="likeCount">0</div>
+                    <div class="stat-label">获得点赞</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的帖子列表 -->
+        <div class="posts-section">
+            <h3 class="section-title">我的匿名帖子</h3>
+            <div id="userPosts">
+                <!-- 帖子将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
+
+    <script>
+        // 页面加载时检查登录状态并加载用户数据
+        window.onload = function() {
+            updateUserLinks();
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+            } else {
+                loadProfileData();
+            }
+        };
+
+        // 检查用户是否登录
+        function checkLoginStatus() {
+            return !!JSON.parse(localStorage.getItem('currentUser'));
+        }
+
+        // 重定向到登录页面
+        function redirectToLogin() {
+            alert('请先登录！');
+            window.location.href = 'login.html';
+        }
+
+        // 更新用户链接
+        function updateUserLinks() {
+            const userLinks = document.getElementById('userLinks');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser) {
+                userLinks.innerHTML = `
+                    <a href="profile.html">个人中心 (${currentUser.username})</a>
+                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+                `;
+            } else {
+                userLinks.innerHTML = `
+                    <a href="login.html">登录</a>
+                    <a href="register.html">注册</a>
+                `;
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('currentUser');
+                updateUserLinks();
+                alert('已退出登录');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // 加载个人中心数据
+        function loadProfileData() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const allPosts = JSON.parse(localStorage.getItem('treeholePosts')) || [];
+            
+            // 筛选出当前用户的帖子
+            const userPosts = allPosts.filter(post => post.authorId === currentUser.userId);
+            
+            // 更新用户信息
+            document.getElementById('username').textContent = currentUser.username;
+            document.getElementById('avatar').textContent = currentUser.username.charAt(0).toUpperCase();
+            document.getElementById('postCount').textContent = userPosts.length;
+            
+            // 计算总点赞数
+            const totalLikes = userPosts.reduce((sum, post) => sum + post.likes.length, 0);
+            document.getElementById('likeCount').textContent = totalLikes;
+            
+            // 渲染用户帖子
+            renderUserPosts(userPosts);
+        }
+
+        // 渲染用户帖子
+        function renderUserPosts(posts) {
+            const postsContainer = document.getElementById('userPosts');
+            
+            if (posts.length === 0) {
+                postsContainer.innerHTML = '<p class="empty-tip">你还没有发布任何帖子</p>';
+                return;
+            }
+            
+            // 按时间倒序排列
+            const sortedPosts = [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            postsContainer.innerHTML = '';
+            sortedPosts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'post-item';
+                postElement.innerHTML = `
+                    <div class="post-meta">发布于 ${post.createdAt}</div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-actions">
+                        <span class="likes-count">❤️ ${post.likes.length}</span>
+                        <button class="delete-btn" onclick="deletePost('${post.id}')">删除</button>
+                    </div>
+                `;
+                postsContainer.appendChild(postElement);
+            });
+        }
+
+        // 删除帖子
+        function deletePost(postId) {
+            if (confirm('确定要删除这个帖子吗？')) {
+                let allPosts = JSON.parse(localStorage.getItem('treeholePosts')) || [];
+                allPosts = allPosts.filter(post => post.id !== postId);
+                localStorage.setItem('treeholePosts', JSON.stringify(allPosts));
+                loadProfileData(); // 重新加载数据
+            }
+        }
+    </script>
+</body>
+</html>

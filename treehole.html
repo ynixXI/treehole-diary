@@ -142,6 +142,14 @@
             padding: 10px 20px;
             align-self: flex-end;
         }
+        .login-prompt {
+            text-align: center;
+            color: #ef4444;
+            padding: 20px;
+            border: 1px dashed #D1FAE5;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
         .footer{text-align:center;padding:20px;color:#4B5563;margin-top:50px;}
     </style>
 </head>
@@ -152,15 +160,15 @@
         <a href="diary_list.html">日记列表</a>
         <a href="treehole.html">匿名树洞</a>
         <a href="about.html">关于本站</a>
+        <span id="userLinks"></span>
     </div>
 
     <div class="container">
         <h2>匿名树洞 · 随心倾诉</h2>
         
         <!-- 发帖表单 -->
-        <div class="post-form">
-            <textarea id="postContent" placeholder="匿名写下你的心事，所有人都看不到你的真实身份..."></textarea>
-            <button onclick="publishPost()">匿名发布</button>
+        <div id="postFormContainer">
+            <!-- 表单将在这里动态生成 -->
         </div>
 
         <!-- 帖子列表 -->
@@ -174,8 +182,77 @@
     </div>
 
     <script>
-        // 页面加载时渲染帖子
-        window.onload = renderPosts;
+        // 页面加载时渲染帖子和用户链接
+        window.onload = function() {
+            updateUserLinks();
+            renderPostForm();
+            renderPosts();
+        };
+
+        // 检查用户是否登录
+        function checkLoginStatus() {
+            return !!JSON.parse(localStorage.getItem('currentUser'));
+        }
+
+        // 获取当前用户ID
+        function getCurrentUserId() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            return user ? user.userId : null;
+        }
+
+        // 重定向到登录页面
+        function redirectToLogin() {
+            alert('请先登录！');
+            window.location.href = 'login.html';
+        }
+
+        // 更新用户链接
+        function updateUserLinks() {
+            const userLinks = document.getElementById('userLinks');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            if (currentUser) {
+                userLinks.innerHTML = `
+                    <a href="profile.html">个人中心 (${currentUser.username})</a>
+                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+                `;
+            } else {
+                userLinks.innerHTML = `
+                    <a href="login.html">登录</a>
+                    <a href="register.html">注册</a>
+                `;
+            }
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('currentUser');
+                updateUserLinks();
+                renderPostForm();
+                renderPosts();
+                alert('已退出登录');
+            }
+        }
+
+        // 渲染发帖表单
+        function renderPostForm() {
+            const container = document.getElementById('postFormContainer');
+            if (checkLoginStatus()) {
+                container.innerHTML = `
+                    <div class="post-form">
+                        <textarea id="postContent" placeholder="匿名写下你的心事，所有人都看不到你的真实身份..."></textarea>
+                        <button onclick="publishPost()">匿名发布</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="login-prompt">
+                        请 <a href="login.html">登录</a> 或 <a href="register.html">注册</a> 后发布帖子
+                    </div>
+                `;
+            }
+        }
 
         // 生成唯一ID
         function generateUUID() {
@@ -183,16 +260,6 @@
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
                 return v.toString(16);
             });
-        }
-
-        // 获取或创建用户ID
-        function getOrCreateUserId() {
-            let userId = localStorage.getItem('treeholeUserId');
-            if (!userId) {
-                userId = generateUUID();
-                localStorage.setItem('treeholeUserId', userId);
-            }
-            return userId;
         }
 
         // 获取所有帖子
@@ -207,6 +274,11 @@
 
         // 发布帖子
         function publishPost() {
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+                return;
+            }
+
             const content = document.getElementById('postContent').value.trim();
             if (!content) {
                 alert('树洞内容不能为空！');
@@ -217,13 +289,13 @@
             const newPost = {
                 id: generateUUID(),
                 content: content,
-                authorId: getOrCreateUserId(),
+                authorId: getCurrentUserId(),
                 createdAt: new Date().toLocaleString(),
                 likes: [],
                 comments: []
             };
 
-            posts.unshift(newPost); // 添加到最前面
+            posts.unshift(newPost);
             savePosts(posts);
             renderPosts();
             document.getElementById('postContent').value = '';
@@ -234,7 +306,7 @@
         function renderPosts() {
             const postsList = document.getElementById('postsList');
             const posts = getPosts();
-            const currentUserId = getOrCreateUserId();
+            const currentUserId = getCurrentUserId();
 
             postsList.innerHTML = '';
 
@@ -286,16 +358,21 @@
 
         // 点赞帖子
         function likePost(postId) {
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+                return;
+            }
+
             const posts = getPosts();
-            const userId = getOrCreateUserId();
+            const userId = getCurrentUserId();
             const post = posts.find(p => p.id === postId);
             
             if (post) {
                 const likeIndex = post.likes.indexOf(userId);
                 if (likeIndex > -1) {
-                    post.likes.splice(likeIndex, 1); // 取消点赞
+                    post.likes.splice(likeIndex, 1);
                 } else {
-                    post.likes.push(userId); // 添加点赞
+                    post.likes.push(userId);
                 }
                 savePosts(posts);
                 renderPosts();
@@ -304,12 +381,22 @@
 
         // 切换评论表单显示
         function toggleCommentForm(postId) {
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+                return;
+            }
+
             const form = document.getElementById(`comment-form-${postId}`);
             form.style.display = form.style.display === 'none' ? 'flex' : 'none';
         }
 
         // 发布评论
         function postComment(postId) {
+            if (!checkLoginStatus()) {
+                redirectToLogin();
+                return;
+            }
+
             const form = document.getElementById(`comment-form-${postId}`);
             const textarea = form.querySelector('textarea');
             const content = textarea.value.trim();
@@ -346,4 +433,3 @@
     </script>
 </body>
 </html>
-功能更新说明：
