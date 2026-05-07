@@ -96,24 +96,31 @@
 
 <script>
 function login() {
+    // 强制触发，一定执行！
+    console.log("登录按钮点击成功！");
+
     let account = document.getElementById("account").value.trim();
     let pwd = document.getElementById("pwd").value.trim();
-    
-    if(!account || !pwd) {
-        alert("请填写完整");
+
+    if(account === "" || pwd === ""){
+        alert("请填写完整信息！");
         return;
     }
 
+    // 读取用户
     let users = JSON.parse(localStorage.getItem("users") || "[]");
-    let user = users.find(u => (u.username == account || u.phone == account) && u.pwd == pwd);
 
-    if(user) {
-        localStorage.setItem("user", JSON.stringify(user));
-        alert("登录成功");
-        location.href = "index.html";
-    } else {
-        alert("账号或密码错误");
+    for(let i=0; i<users.length; i++){
+        let u = users[i];
+        if( (u.username === account || u.phone === account) && u.pwd === pwd ){
+            localStorage.setItem("user", JSON.stringify(u));
+            alert("登录成功！");
+            location.href = "index.html";
+            return;
+        }
     }
+
+    alert("账号或密码错误！");
 }
 </script>
 </body>

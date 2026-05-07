@@ -76,30 +76,39 @@
 
 <script>
 function reg() {
+    // 强制触发
+    console.log("注册按钮点击成功！");
+
     let phone = document.getElementById("phone").value.trim();
     let name = document.getElementById("name").value.trim();
     let pwd = document.getElementById("pwd").value.trim();
     let cpwd = document.getElementById("cpwd").value.trim();
 
-    if(!phone || !name || !pwd || pwd != cpwd) {
-        alert("信息不完整或两次密码不一致");
+    if(phone === "" || name === "" || pwd === "" || cpwd === ""){
+        alert("请填写完整信息！");
+        return;
+    }
+
+    if(pwd !== cpwd){
+        alert("两次密码不一致！");
         return;
     }
 
     let users = JSON.parse(localStorage.getItem("users") || "[]");
 
-    let hasPhone = users.some(u => u.phone == phone);
-    let hasName = users.some(u => u.username == name);
-
-    if(hasPhone) {
-        alert("该手机号已注册");
-        return;
+    // 检查重复
+    for(let i=0; i<users.length; i++){
+        if(users[i].phone === phone){
+            alert("该手机号已注册！");
+            return;
+        }
+        if(users[i].username === name){
+            alert("用户名已被占用！");
+            return;
+        }
     }
-    if(hasName) {
-        alert("用户名已被占用");
-        return;
-    }
 
+    // 注册
     users.push({
         id: Date.now(),
         phone: phone,
@@ -108,8 +117,9 @@ function reg() {
     });
 
     localStorage.setItem("users", JSON.stringify(users));
-    alert("注册成功！请登录");
+    alert("注册成功！请登录！");
     location.href = "login.html";
 }
 </script>
 </body>
+</html>
