@@ -36,120 +36,33 @@
         }
         h2{text-align:center;color:#374151;margin-bottom:25px;}
         .post-form textarea{
-            width:100%;
-            height:120px;
-            padding:15px;
-            border:1px solid #D1FAE5;
-            border-radius:4px;
-            resize:none;
-            margin-bottom:15px;
+            width:100%;height:120px;padding:15px;
+            border:1px solid #D1FAE5;border-radius:4px;resize:none;
             font-family:"微软雅黑",sans-serif;
         }
         button{
-            padding:10px 25px;
-            background:#6EE7B7;
-            color:#fff;
-            border:none;
-            border-radius:4px;
-            cursor:pointer;
-            font-family:"微软雅黑",sans-serif;
+            padding:10px 25px;background:#6EE7B7;color:#fff;
+            border:none;border-radius:4px;cursor:pointer;
         }
         button:hover{background:#34D399;}
-        .posts-list {
-            margin-top: 40px;
-        }
+        .posts-list{margin-top:40px;}
         .post-item{
-            border:1px solid #D1FAE5;
-            padding:20px;
-            border-radius:6px;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.8);
+            border:1px solid #D1FAE5;padding:20px;border-radius:6px;
+            margin-bottom:20px;background:rgba(255,255,255,0.8);
         }
-        .post-meta {
-            font-size: 12px;
-            color: #6B7280;
-            margin-bottom: 10px;
-        }
-        .post-content{
-            color:#374151;
-            margin-bottom: 15px;
-            line-height: 1.6;
-        }
-        .post-actions {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .action-btn {
-            background: none;
-            border: none;
-            color: #6B7280;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 0;
-        }
-        .action-btn:hover {
-            color: #34D399;
-        }
-        .action-btn.liked {
-            color: #ef4444;
-        }
-        .delete-btn {
-            background-color: #ef4444;
-            color: white;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin-left: auto;
-        }
-        .delete-btn:hover {
-            background-color: #dc2626;
-        }
-        .comments-section {
-            border-top: 1px dashed #D1FAE5;
-            padding-top: 15px;
-        }
-        .comment-item {
-            background: #F0FFF4;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
-            font-size: 14px;
-            color: #4B5563;
-        }
-        .comment-meta {
-            font-size: 11px;
-            color: #9CA3AF;
-            margin-bottom: 5px;
-        }
-        .comment-form {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .comment-form textarea {
-            flex-grow: 1;
-            height: 60px;
-            padding: 10px;
-            border: 1px solid #D1FAE5;
-            border-radius: 4px;
-            resize: none;
-            font-family:"微软雅黑",sans-serif;
-        }
-        .comment-form button {
-            padding: 10px 20px;
-            align-self: flex-end;
-        }
-        .login-prompt {
-            text-align: center;
-            color: #ef4444;
-            padding: 20px;
-            border: 1px dashed #D1FAE5;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
+        .post-meta{font-size:12px;color:#6B7280;margin-bottom:10px;}
+        .post-content{color:#374151;line-height:1.6;margin-bottom:15px;}
+        .post-actions{display:flex;gap:15px;align-items:center;}
+        .action-btn{background:none;border:none;color:#6B7280;cursor:pointer;}
+        .action-btn:hover{color:#34D399;}
+        .action-btn.liked{color:#EF4444;}
+        .delete-btn{background:#EF4444;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:12px;margin-left:auto;}
+        .comments-section{border-top:1px dashed #D1FAE5;padding-top:15px;margin-top:15px;}
+        .comment-item{background:#ECFDF5;padding:10px;border-radius:4px;margin-bottom:10px;font-size:14px;color:#4B5563;}
+        .comment-meta{font-size:11px;color:#9CA3AF;margin-bottom:5px;}
+        .comment-form{display:flex;gap:10px;margin-top:10px;}
+        .comment-form textarea{flex-grow:1;height:60px;padding:10px;border:1px solid #D1FAE5;border-radius:4px;}
+        .login-prompt{text-align:center;color:#EF4444;padding:20px;border:1px dashed #D1FAE5;border-radius:4px;}
         .footer{text-align:center;padding:20px;color:#4B5563;margin-top:50px;}
     </style>
 </head>
@@ -165,248 +78,164 @@
 
     <div class="container">
         <h2>匿名树洞 · 随心倾诉</h2>
-        
         <div id="postFormContainer"></div>
         <div class="posts-list" id="postsList"></div>
     </div>
 
-    <div class="footer">
-        网页设计答辩作品 · 树洞日记网 版权所有
-    </div>
+    <div class="footer">网页设计答辩作品 · 树洞日记网 版权所有</div>
 
     <script>
-        window.onload = function() {
+        window.onload = function(){
             updateUserLinks();
             renderPostForm();
             renderPosts();
-        };
-
-        function checkLoginStatus() {
-            return !!JSON.parse(localStorage.getItem('currentUser'));
         }
 
-        function getCurrentUserId() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            return user ? user.userId : null;
+        function checkLoginStatus(){
+            return !!localStorage.getItem('currentUser');
         }
 
-        function redirectToLogin() {
+        function getCurrentUser(){
+            return JSON.parse(localStorage.getItem('currentUser'));
+        }
+
+        function redirectToLogin(){
             alert('请先登录！');
-            window.location.href = 'login.html';
+            location.href='login.html';
         }
 
-        function updateUserLinks() {
-            const userLinks = document.getElementById('userLinks');
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            
-            if (currentUser) {
-                userLinks.innerHTML = `
-                    <a href="profile.html">个人中心 (${currentUser.username})</a>
-                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
-                `;
-            } else {
-                userLinks.innerHTML = `
-                    <a href="login.html">登录</a>
-                    <a href="register.html">注册</a>
-                `;
+        function updateUserLinks(){
+            const u = getCurrentUser();
+            const el = document.getElementById('userLinks');
+            if(u){
+                el.innerHTML = `
+                <a href="profile.html">个人中心(${u.username})</a>
+                <a href="javascript:void(0)" onclick="logout()">退出登录</a>`;
+            }else{
+                el.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
             }
         }
 
-        function logout() {
-            if (confirm('确定要退出登录吗？')) {
+        function logout(){
+            if(confirm('确定退出？')){
                 localStorage.removeItem('currentUser');
-                localStorage.removeItem("nowUser");
-                updateUserLinks();
-                renderPostForm();
-                renderPosts();
-                alert('已退出登录');
+                location.href='index.html';
             }
         }
 
-        function renderPostForm() {
-            const container = document.getElementById('postFormContainer');
-            if (checkLoginStatus()) {
-                container.innerHTML = `
-                    <div class="post-form">
-                        <textarea id="postContent" placeholder="匿名写下你的心事，所有人都看不到你的真实身份..."></textarea>
-                        <button onclick="publishPost()">匿名发布</button>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="login-prompt">
-                        请 <a href="login.html">登录</a> 或 <a href="register.html">注册</a> 后发布帖子
-                    </div>
-                `;
-            }
-        }
-
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-
-        // ======================= 修复：全局公共存储 =======================
-        function getPosts() {
-            return JSON.parse(localStorage.getItem('PUBLIC_TREEHOLE') || '[]');
-        }
-        function savePosts(posts) {
-            localStorage.setItem('PUBLIC_TREEHOLE', JSON.stringify(posts));
-        }
-        // ================================================================
-
-        function publishPost() {
-            if (!checkLoginStatus()) {
-                redirectToLogin();
+        function renderPostForm(){
+            const el = document.getElementById('postFormContainer');
+            if(!checkLoginStatus()){
+                el.innerHTML = `<div class="login-prompt">请<a href="login.html">登录</a>后发布</div>`;
                 return;
             }
+            el.innerHTML = `
+            <div class="post-form">
+                <textarea id="postContent" placeholder="写下你的心事..."></textarea>
+                <button onclick="publishPost()">发布</button>
+            </div>`;
+        }
 
+        function getGlobalPosts(){
+            return JSON.parse(localStorage.getItem('GLOBAL_TREEHOLE'))||[];
+        }
+
+        function saveGlobalPosts(p){
+            localStorage.setItem('GLOBAL_TREEHOLE',JSON.stringify(p));
+        }
+
+        function publishPost(){
             const content = document.getElementById('postContent').value.trim();
-            if (!content) {
-                alert('树洞内容不能为空！');
-                return;
-            }
-
-            const posts = getPosts();
-            const newPost = {
-                id: generateUUID(),
-                content: content,
-                authorId: getCurrentUserId(),
-                createdAt: new Date().toLocaleString(),
-                likes: [],
-                comments: []
-            };
-
-            posts.unshift(newPost);
-            savePosts(posts);
-            renderPosts();
-            document.getElementById('postContent').value = '';
-            alert('发布成功！');
-        }
-
-        function renderPosts() {
-            const postsList = document.getElementById('postsList');
-            const posts = getPosts();
-            const currentUserId = getCurrentUserId();
-
-            postsList.innerHTML = '';
-
-            if (posts.length === 0) {
-                postsList.innerHTML = '<p style="text-align: center; color: #888;">还没有帖子，快来发布第一个吧！</p>';
-                return;
-            }
-
-            posts.forEach(post => {
-                const isLiked = post.likes.includes(currentUserId);
-                const isAuthor = post.authorId === currentUserId;
-
-                const postElement = document.createElement('div');
-                postElement.className = 'post-item';
-                postElement.innerHTML = `
-                    <div class="post-meta">发布于 ${post.createdAt}</div>
-                    <div class="post-content">${post.content}</div>
-                    <div class="post-actions">
-                        <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" onclick="likePost('${post.id}')">
-                            <span>❤️</span> ${post.likes.length}
-                        </button>
-                        <button class="action-btn comment-btn" onclick="toggleCommentForm('${post.id}')">
-                            <span>💬</span> ${post.comments.length}
-                        </button>
-                        ${isAuthor ? `<button class="delete-btn" onclick="deletePost('${post.id}')">删除</button>` : ''}
-                    </div>
-                    <div class="comments-section" id="comments-${post.id}">
-                        ${renderComments(post.comments)}
-                        <div class="comment-form" id="comment-form-${post.id}" style="display: none;">
-                            <textarea placeholder="写下你的匿名评论..."></textarea>
-                            <button onclick="postComment('${post.id}')">发表</button>
-                        </div>
-                    </div>
-                `;
-                postsList.appendChild(postElement);
+            if(!content){alert('内容不能为空');return;}
+            const u = getCurrentUser();
+            const list = getGlobalPosts();
+            list.unshift({
+                id:Date.now().toString(),
+                content:content,
+                authorId:u.userId,
+                createdAt:new Date().toLocaleString(),
+                likes:[],comments:[]
             });
+            saveGlobalPosts(list);
+            document.getElementById('postContent').value='';
+            renderPosts();
         }
 
-        function renderComments(comments) {
-            if (comments.length === 0) return '';
-            return comments.map(comment => `
-                <div class="comment-item">
-                    <div class="comment-meta">匿名用户 评论于 ${comment.createdAt}</div>
-                    <div class="comment-content">${comment.content}</div>
-                </div>
-            `).join('');
+        function renderPosts(){
+            const list = getGlobalPosts();
+            const el = document.getElementById('postsList');
+            const u = getCurrentUser();
+            if(list.length===0){el.innerHTML='<div style="text-align:center;color:#888;">暂无帖子</div>';return;}
+            let html='';
+            list.forEach(p=>{
+                const isLiked = u && p.likes.includes(u.userId);
+                const isMine = u && p.authorId === u.userId;
+                html+=`
+                <div class="post-item">
+                    <div class="post-meta">${p.createdAt}</div>
+                    <div class="post-content">${p.content}</div>
+                    <div class="post-actions">
+                        <button class="action-btn ${isLiked?'liked':''}" onclick="like('${p.id}')">❤️ ${p.likes.length}</button>
+                        <button class="action-btn" onclick="toggleComment('${p.id}')">💬 ${p.comments.length}</button>
+                        ${isMine?`<button class="delete-btn" onclick="delPost('${p.id}')">删除</button>`:''}
+                    </div>
+                    <div class="comments-section" id="c_${p.id}" style="display:none">
+                        ${p.comments.map(c=>`
+                        <div class="comment-item">
+                            <div class="comment-meta">${c.createdAt}</div>
+                            <div>${c.content}</div>
+                        </div>`).join('')}
+                        ${u?`
+                        <div class="comment-form">
+                            <textarea id="cmt_${p.id}"></textarea>
+                            <button onclick="comment('${p.id}')">回复</button>
+                        </div>`:''}
+                    </div>
+                </div>`;
+            });
+            el.innerHTML=html;
         }
 
-        function likePost(postId) {
-            if (!checkLoginStatus()) {
-                redirectToLogin();
-                return;
-            }
-
-            const posts = getPosts();
-            const userId = getCurrentUserId();
-            const post = posts.find(p => p.id === postId);
-            
-            if (post) {
-                const likeIndex = post.likes.indexOf(userId);
-                if (likeIndex > -1) {
-                    post.likes.splice(likeIndex, 1);
-                } else {
-                    post.likes.push(userId);
-                }
-                savePosts(posts);
-                renderPosts();
-            }
+        function like(pid){
+            if(!checkLoginStatus())return redirectToLogin();
+            const u=getCurrentUser();
+            const list=getGlobalPosts();
+            const p=list.find(x=>x.id===pid);
+            if(!p)return;
+            const idx=p.likes.indexOf(u.userId);
+            if(idx===-1)p.likes.push(u.userId);
+            else p.likes.splice(idx,1);
+            saveGlobalPosts(list);
+            renderPosts();
         }
 
-        function toggleCommentForm(postId) {
-            if (!checkLoginStatus()) {
-                redirectToLogin();
-                return;
-            }
-
-            const form = document.getElementById(`comment-form-${postId}`);
-            form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+        function toggleComment(pid){
+            const el=document.getElementById('c_'+pid);
+            el.style.display=el.style.display=='none'?'block':'none';
         }
 
-        function postComment(postId) {
-            if (!checkLoginStatus()) {
-                redirectToLogin();
-                return;
-            }
-
-            const form = document.getElementById(`comment-form-${postId}`);
-            const textarea = form.querySelector('textarea');
-            const content = textarea.value.trim();
-            
-            if (!content) {
-                alert('评论内容不能为空！');
-                return;
-            }
-
-            const posts = getPosts();
-            const post = posts.find(p => p.id === postId);
-            
-            if (post) {
-                post.comments.push({
-                    content: content,
-                    createdAt: new Date().toLocaleString()
-                });
-                savePosts(posts);
-                renderPosts();
-                textarea.value = '';
-                form.style.display = 'none';
-            }
+        function comment(pid){
+            if(!checkLoginStatus())return redirectToLogin();
+            const u=getCurrentUser();
+            const content=document.getElementById('cmt_'+pid).value.trim();
+            if(!content)return;
+            const list=getGlobalPosts();
+            const p=list.find(x=>x.id===pid);
+            p.comments.push({
+                content:content,
+                createdAt:new Date().toLocaleString()
+            });
+            saveGlobalPosts(list);
+            document.getElementById('cmt_'+pid).value='';
+            renderPosts();
         }
 
-        function deletePost(postId) {
-            if (confirm('确定要删除这个帖子吗？')) {
-                let posts = getPosts();
-                posts = posts.filter(p => p.id !== postId);
-                savePosts(posts);
-                renderPosts();
-            }
+        function delPost(pid){
+            if(!confirm('确定删除？'))return;
+            let list=getGlobalPosts();
+            list=list.filter(x=>x.id!==pid);
+            saveGlobalPosts(list);
+            renderPosts();
         }
     </script>
 </body>

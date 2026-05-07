@@ -42,33 +42,13 @@
             color:#555555;
             margin-bottom: 15px;
         }
-        .diary-date {
-            font-weight: bold;
-            color: #333333;
-            margin-bottom: 5px;
-        }
-        .diary-content {
-            line-height: 1.6;
-        }
+        .diary-date { font-weight: bold; color: #333333; margin-bottom: 5px; }
+        .diary-content { line-height: 1.6; }
         .delete-btn {
-            float: right;
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 5px;
+            float: right; background: #ef4444; color: white; border: none;
+            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
         }
-        .delete-btn:hover {
-            background-color: #dc2626;
-        }
-        .empty-tip {
-            text-align: center;
-            color: #888;
-            padding: 20px;
-        }
+        .empty-tip { text-align: center; color: #888; padding: 20px; }
         .footer{text-align:center;padding:20px;color:#555555;margin-top:50px;}
     </style>
 </head>
@@ -84,111 +64,74 @@
 
     <div class="container">
         <h2>我的日记列表</h2>
-        <div class="diary-list" id="diaryList">
-            <!-- 日记列表将在这里动态生成 -->
-        </div>
+        <div class="diary-list" id="diaryList"></div>
     </div>
 
-    <div class="footer">
-        网页设计答辩作品 · 树洞日记网 版权所有
-    </div>
+    <div class="footer">网页设计答辩作品 · 树洞日记网 版权所有</div>
 
     <script>
-        // 页面加载时检查登录状态并加载日记
         window.onload = function() {
             updateUserLinks();
-            if (!checkLoginStatus()) {
-                redirectToLogin();
-            } else {
-                loadDiaries();
-            }
+            if (!checkLoginStatus()) redirectToLogin();
+            else loadDiaries();
         };
 
-        // 检查用户是否登录
-        function checkLoginStatus() {
-            return !!JSON.parse(localStorage.getItem('currentUser'));
-        }
+        function checkLoginStatus() { return !!localStorage.getItem('currentUser'); }
+        function redirectToLogin() { alert('请先登录！'); location.href = 'login.html'; }
 
-        // 重定向到登录页面
-        function redirectToLogin() {
-            alert('请先登录！');
-            window.location.href = 'login.html';
-        }
-
-        // 更新用户链接
         function updateUserLinks() {
-            const userLinks = document.getElementById('userLinks');
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            
-            if (currentUser) {
-                userLinks.innerHTML = `
-                    <a href="profile.html">个人中心 (${currentUser.username})</a>
-                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const el = document.getElementById('userLinks');
+            if (user) {
+                el.innerHTML = `
+                    <a href="profile.html">个人中心 (${user.username})</a>
+                    <a href="javascript:void(0)" onclick="logout()">退出</a>
                 `;
             } else {
-                userLinks.innerHTML = `
-                    <a href="login.html">登录</a>
-                    <a href="register.html">注册</a>
-                `;
+                el.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
             }
         }
 
-        // 退出登录
         function logout() {
-            if (confirm('确定要退出登录吗？')) {
+            if (confirm('确定退出？')) {
                 localStorage.removeItem('currentUser');
-                localStorage.removeItem("nowUser");
-                updateUserLinks();
-                alert('已退出登录');
+                location.href = 'index.html';
             }
         }
 
-        // 加载日记
         function loadDiaries() {
-            let diaryList = document.getElementById("diaryList");
-            // =============== 我只修改了这里 ===============
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            const username = currentUser.username;
-            let diaries = JSON.parse(localStorage.getItem(username + '_diaries')) || [];
-            // ==============================================
-
-            diaryList.innerHTML = "";
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const key = user.userId + '_diaries';
+            const diaries = JSON.parse(localStorage.getItem(key)) || [];
+            const container = document.getElementById('diaryList');
 
             if (diaries.length === 0) {
-                diaryList.innerHTML = "<p class='empty-tip'>暂无日记，快去写一篇吧！</p>";
+                container.innerHTML = '<p class="empty-tip">暂无日记</p>';
                 return;
             }
 
-            // 创建一个倒序的副本用于显示
-            const reversedDiaries = [...diaries].reverse();
-            
-            reversedDiaries.forEach((diary, index) => {
-                let diaryItem = document.createElement('div');
-                diaryItem.className = 'diary-item';
-                // 传递原始数组的索引，而不是倒序后的索引
-                const originalIndex = diaries.length - 1 - index;
-                diaryItem.innerHTML = `
-                    <div class="diary-date">${diary.date}</div>
-                    <div class="diary-content">${diary.content}</div>
-                    <button class="delete-btn" onclick="deleteDiary(${originalIndex})">删除</button>
-                `;
-                diaryList.appendChild(diaryItem);
+            const reversed = [...diaries].reverse();
+            let html = '';
+            reversed.forEach((d, i) => {
+                const idx = diaries.length - 1 - i;
+                html += `
+                <div class="diary-item">
+                    <div class="diary-date">${d.date}</div>
+                    <div class="diary-content">${d.content}</div>
+                    <button class="delete-btn" onclick="del(${idx})">删除</button>
+                </div>`;
             });
+            container.innerHTML = html;
         }
 
-        // 删除日记
-        function deleteDiary(originalIndex) {
-            if (confirm("确定要删除这篇日记吗？")) {
-                // =============== 我只修改了这里 ===============
-                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-                const username = currentUser.username;
-                let diaries = JSON.parse(localStorage.getItem(username + '_diaries')) || [];
-                // ==============================================
-                // 直接使用原始索引删除
-                diaries.splice(originalIndex, 1);
-                localStorage.setItem(username + '_diaries', JSON.stringify(diaries));
-                loadDiaries();
-            }
+        function del(idx) {
+            if (!confirm('确定删除？')) return;
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const key = user.userId + '_diaries';
+            const list = JSON.parse(localStorage.getItem(key)) || [];
+            list.splice(idx, 1);
+            localStorage.setItem(key, JSON.stringify(list));
+            loadDiaries();
         }
     </script>
 </body>

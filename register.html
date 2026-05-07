@@ -7,11 +7,11 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{
             font-family:"微软雅黑",sans-serif;
-            background-color: #FDF6ED;
-            background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background-color:#FDF6ED;
+            background-image:url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
+            background-size:cover;
+            background-position:center;
+            background-attachment:fixed;
         }
         .nav{
             background:#C85E44;
@@ -22,17 +22,17 @@
             text-decoration:none;
             font-size:18px;
             margin:0 20px;
-            font-family: 'Nunito', 'Quicksand', sans-serif;
-            font-weight: 700;
+            font-family:'Nunito','Quicksand',sans-serif;
+            font-weight:700;
         }
         .nav a:hover{text-decoration:underline;}
         .container{
-            width: 400px;
-            margin: 50px auto;
-            background: rgba(254, 251, 246, 0.9);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(200, 94, 68, 0.15);
+            width:400px;
+            margin:50px auto;
+            background:rgba(254,251,246,0.9);
+            padding:30px;
+            border-radius:8px;
+            box-shadow:0 4px 12px rgba(200,94,68,0.15);
         }
         h2{text-align:center;color:#5D4037;margin-bottom:25px;}
         .form-group{margin-bottom:20px;}
@@ -57,7 +57,6 @@
         button:hover{background:#A14E3A;}
         .login-link{text-align:center;margin-top:15px;color:#8D6E63;}
         .login-link a{color:#C85E44;text-decoration:none;}
-        .login-link a:hover{text-decoration:underline;}
         .footer{text-align:center;padding:20px;color:#8D6E63;margin-top:50px;}
     </style>
 </head>
@@ -71,6 +70,10 @@
     <div class="container">
         <h2>用户注册</h2>
         <div class="form-group">
+            <label for="phone">手机号码</label>
+            <input type="text" id="phone" placeholder="请输入手机号">
+        </div>
+        <div class="form-group">
             <label for="username">用户名</label>
             <input type="text" id="username" placeholder="请输入用户名">
         </div>
@@ -80,7 +83,7 @@
         </div>
         <div class="form-group">
             <label for="confirmPassword">确认密码</label>
-            <input type="password" id="confirmPassword" placeholder="请再次输入密码">
+            <input type="password" id="confirmPassword" placeholder="再次输入密码">
         </div>
         <button onclick="register()">注册</button>
         <div class="login-link">
@@ -89,75 +92,55 @@
     </div>
 
     <div class="footer">
-        网页设计答辩作品 · 树洞日记网 版权所有
+        网页设计答辩作品 · 版权所有
     </div>
 
     <script>
-        // 简单的哈希函数（实际项目中请使用更安全的库）
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        function simpleHash(str){
+            let hash=0;
+            for(let i=0;i<str.length;i++){
+                hash=str.charCodeAt(i)+((hash<<5)-hash);
             }
             return hash.toString(16);
         }
-
-        // 获取所有用户
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('users')) || [];
+        function getUsers(){
+            return JSON.parse(localStorage.getItem('GLOBAL_USERS'))||[];
         }
-
-        // 保存用户
-        function saveUsers(users) {
-            localStorage.setItem('users', JSON.stringify(users));
+        function saveUsers(us){
+            localStorage.setItem('GLOBAL_USERS',JSON.stringify(us));
         }
+        function register(){
+            let phone=document.getElementById('phone').value.trim();
+            let username=document.getElementById('username').value.trim();
+            let pwd=document.getElementById('password').value;
+            let cpwd=document.getElementById('confirmPassword').value;
 
-        // 检查用户名是否已存在
-        function isUsernameTaken(username) {
-            const users = getUsers();
-            return users.some(user => user.username === username);
-        }
-
-        // 注册函数
-        function register() {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (!username) {
-                alert('用户名不能为空！');
+            if(!phone||!username||!pwd){
+                alert('请填写完整信息');
                 return;
             }
-
-            if (isUsernameTaken(username)) {
-                alert('用户名已存在！');
+            if(pwd!==cpwd){
+                alert('两次密码不一致');
                 return;
             }
-
-            if (password.length < 6) {
-                alert('密码长度不能少于6位！');
+            let users=getUsers();
+            if(users.some(u=>u.phone===phone)){
+                alert('该手机号已注册');
                 return;
             }
-
-            if (password !== confirmPassword) {
-                alert('两次输入的密码不一致！');
+            if(users.some(u=>u.username===username)){
+                alert('用户名已被使用');
                 return;
             }
-
-            // 创建新用户
-            const newUser = {
-                userId: Date.now().toString(), // 使用时间戳作为简单的唯一ID
-                username: username,
-                passwordHash: simpleHash(password), // 存储哈希后的密码
-                createdAt: new Date().toLocaleString()
-            };
-
-            const users = getUsers();
-            users.push(newUser);
+            users.push({
+                userId:Date.now().toString(),
+                phone:phone,
+                username:username,
+                passwordHash:simpleHash(pwd)
+            });
             saveUsers(users);
-
-            alert('注册成功！请登录。');
-            window.location.href = 'login.html';
+            alert('注册成功！请登录');
+            location.href='login.html';
         }
     </script>
 </body>

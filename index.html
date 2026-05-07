@@ -98,9 +98,6 @@
     function logout() {
         if (confirm('确定要退出登录吗？')) {
             localStorage.removeItem('currentUser');
-            // ========== 我只加了这一行 ==========
-            localStorage.removeItem("nowUser");
-            
             updateUserLinks();
             alert('已退出登录');
         }
@@ -129,7 +126,7 @@
             <img src="https://aka.doubaocdn.com/s/8UiK1wVXeZ" alt="匿名树洞" class="card-img">
             <div class="card-content">
                 <h2>匿名树洞</h2>
-                <p>匿名发帖、匿名评论，无人知晓身份</p>
+                <p>匿名发帖、匿名评论，无人知晓你的身份</p>
                 <a href="treehole.html">进入树洞</a>
             </div>
         </div>

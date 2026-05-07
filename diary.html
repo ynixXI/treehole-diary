@@ -71,79 +71,56 @@
     </div>
 
     <script>
-        // 页面加载时检查登录状态
         window.onload = function() {
             updateUserLinks();
-            if (!checkLoginStatus()) {
-                redirectToLogin();
-            }
+            if (!checkLoginStatus()) redirectToLogin();
         };
 
-        // 检查用户是否登录
         function checkLoginStatus() {
             return !!JSON.parse(localStorage.getItem('currentUser'));
         }
 
-        // 重定向到登录页面
         function redirectToLogin() {
             alert('请先登录！');
             window.location.href = 'login.html';
         }
 
-        // 更新用户链接
         function updateUserLinks() {
             const userLinks = document.getElementById('userLinks');
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            
             if (currentUser) {
                 userLinks.innerHTML = `
                     <a href="profile.html">个人中心 (${currentUser.username})</a>
                     <a href="javascript:void(0)" onclick="logout()">退出登录</a>
                 `;
             } else {
-                userLinks.innerHTML = `
-                    <a href="login.html">登录</a>
-                    <a href="register.html">注册</a>
-                `;
+                userLinks.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
             }
         }
 
-        // 退出登录
         function logout() {
-            if (confirm('确定要退出登录吗？')) {
+            if (confirm('确定退出？')) {
                 localStorage.removeItem('currentUser');
-                updateUserLinks();
-                alert('已退出登录');
+                location.href = 'index.html';
             }
         }
 
-        // 保存日记
         function saveDiary() {
-            if (!checkLoginStatus()) return;
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const content = document.getElementById('diaryContent').value.trim();
+            if (!content) { alert('内容不能为空'); return; }
 
-            let content = document.getElementById("diaryContent").value;
-            if (content.trim() === "") {
-                alert("日记内容不能为空！");
-                return;
-            }
-
-            let now = new Date();
-            let dateString = now.toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long'
+            const date = new Date().toLocaleDateString('zh-CN', {
+                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
             });
 
-            let diaries = JSON.parse(localStorage.getItem('diaries')) || [];
-            diaries.push({
-                date: dateString,
-                content: content
-            });
-            localStorage.setItem('diaries', JSON.stringify(diaries));
+            const key = user.userId + '_diaries';
+            const diaries = JSON.parse(localStorage.getItem(key)) || [];
+            diaries.push({ date, content });
+            localStorage.setItem(key, JSON.stringify(diaries));
 
-            alert("日记保存成功！你可以去「日记列表」查看。");
-            document.getElementById("diaryContent").value = "";
+            alert('日记保存成功！');
+            document.getElementById('diaryContent').value = '';
         }
     </script>
 </body>
