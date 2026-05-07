@@ -22,8 +22,8 @@
             text-decoration:none;
             font-size:18px;
             margin:0 20px;
-            font-family:'Nunito','Quicksand',sans-serif;
-            font-weight:700;
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-weight: 700;
         }
         .nav a:hover{text-decoration:underline;}
         .container{
@@ -74,12 +74,12 @@
     <div class="container">
         <h2>用户登录</h2>
         <div class="form-group">
-            <label for="username">用户名/手机号</label>
-            <input type="text" id="username" placeholder="请输入用户名或手机号">
+            <label for="account">用户名/手机号</label>
+            <input type="text" id="account" placeholder="请输入用户名或手机号">
         </div>
         <div class="form-group">
-            <label for="password">密码</label>
-            <input type="password" id="password" placeholder="请输入密码">
+            <label for="pwd">密码</label>
+            <input type="password" id="pwd" placeholder="请输入密码">
         </div>
         <button onclick="login()">登录</button>
         <div class="forgot-link">
@@ -94,43 +94,25 @@
         网页设计答辩作品 · 树洞日记网 版权所有
     </div>
 
-    <script>
-        function simpleHash(str){
-            let hash=0;
-            for(let i=0;i<str.length;i++){
-                hash=str.charCodeAt(i)+((hash<<5)-hash);
-            }
-            return hash.toString(16);
-        }
+<script>
+const API = "https://tree-hole-api.onrender.com";
 
-        function getUsers(){
-            return JSON.parse(localStorage.getItem('GLOBAL_USERS'))||[];
-        }
+async function login(){
+    let account = document.getElementById("account").value.trim();
+    let pwd = document.getElementById("pwd").value.trim();
+    if(!account || !pwd) return alert("请填写完整");
 
-        function login(){
-            let account=document.getElementById('username').value.trim();
-            let pwd=document.getElementById('password').value;
-            if(!account||!pwd){
-                alert('请输入完整信息');
-                return;
-            }
-            let users=getUsers();
-            let user=users.find(u=>
-                (u.username===account||u.phone===account)
-                &&u.passwordHash===simpleHash(pwd)
-            );
-            if(user){
-                localStorage.setItem('currentUser',JSON.stringify({
-                    userId:user.userId,
-                    username:user.username,
-                    phone:user.phone
-                }));
-                alert('登录成功');
-                location.href='index.html';
-            }else{
-                alert('账号或密码错误');
-            }
-        }
-    </script>
+    let res = await fetch(API+"/login?account="+encodeURIComponent(account)+"&pwd="+encodeURIComponent(pwd));
+    let user = await res.json();
+
+    if(user && user.id){
+        localStorage.setItem("user", JSON.stringify(user));
+        alert("登录成功");
+        location.href = "index.html";
+    }else{
+        alert("账号或密码错误");
+    }
+}
+</script>
 </body>
 </html>

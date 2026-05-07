@@ -8,14 +8,12 @@
         body{
             font-family:"微软雅黑",sans-serif;
             background-color: #FEFCE8;
-            /* 更换为可爱的晴天背景图 */
             background-image: url('https://aka.doubaocdn.com/s/oS8p1wVYWh');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
         .nav{
-            /* 更换为明亮的太阳黄导航栏 */
             background:#FBBF24;
             padding:18px;text-align:center;
         }
@@ -31,7 +29,6 @@
         .container{
             width:900px;
             margin:40px auto;
-            /* 调整为更明亮的半透明背景，更好地融入卡通背景 */
             background: rgba(255, 255, 255, 0.85);
             padding:40px;
             border-radius:8px;
@@ -50,6 +47,7 @@
         <a href="diary_list.html">日记列表</a>
         <a href="treehole.html">匿名树洞</a>
         <a href="about.html">关于本站</a>
+        <span id="userLinks"></span>
     </div>
 
     <div class="container">
@@ -70,5 +68,21 @@
     <div class="footer">
         网页设计答辩作品 · 树洞日记网 版权所有
     </div>
+
+<script>
+window.onload = function() {
+    let user = JSON.parse(localStorage.getItem('user')||'null');
+    let userLinks = document.getElementById('userLinks');
+    if (user) {
+        userLinks.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
+    } else {
+        userLinks.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
+    }
+};
+function logout() {
+    localStorage.removeItem('user');
+    location.href='index.html';
+}
+</script>
 </body>
 </html>

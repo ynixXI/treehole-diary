@@ -27,35 +27,45 @@
         }
         .nav a:hover{text-decoration:underline;}
         .container{
-            width:900px;margin:40px auto;
-            display:flex;gap:30px;
-        }
-        .profile-card{
-            width:30%;background:rgba(254,251,246,0.9);
-            padding:30px;border-radius:8px;
+            width:600px;
+            margin:50px auto;
+            background:rgba(254,251,246,0.95);
+            padding:40px;
+            border-radius:8px;
             box-shadow:0 4px 12px rgba(200,94,68,0.15);
+        }
+        h2{
             text-align:center;
+            color:#5D4037;
+            margin-bottom:30px;
         }
-        .profile-avatar{
-            width:100px;height:100px;border-radius:50%;
-            background:#C85E44;color:white;font-size:48px;
-            display:flex;align-items:center;justify-content:center;
-            margin:0 auto 20px;
+        .info{
+            font-size:16px;
+            line-height:2;
+            margin-bottom:30px;
+            color:#333;
         }
-        .profile-username{font-size:24px;color:#5D4037;margin-bottom:10px;}
-        .stats{display:flex;justify-content:space-around;margin-top:20px;padding-top:20px;border-top:1px solid #ddd;}
-        .stat-value{font-size:24px;font-weight:bold;color:#C85E44;}
-        .stat-label{font-size:14px;color:#8D6E63;}
-        .posts-section{flex-grow:1;background:rgba(254,251,246,0.9);padding:30px;border-radius:8px;}
-        .section-title{font-size:20px;color:#5D4037;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid #ddd;}
-        .post-item{border:1px solid #ddd;padding:15px;border-radius:6px;margin-bottom:15px;background:rgba(255,255,255,0.8);}
-        .post-meta{font-size:12px;color:#8D6E63;margin-bottom:10px;}
-        .delete-btn{background:#EF4444;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:12px;}
-        .empty-tip{text-align:center;color:#888;padding:20px;}
-        .rename{margin:10px 0;}
-        .rename input{padding:6px;width:120px;}
-        .rename button{padding:6px 12px;background:#C85E44;color:white;border:none;border-radius:4px;}
-        .footer{text-align:center;padding:20px;color:#8D6E63;margin-top:50px;}
+        input{
+            width:100%;
+            padding:10px;
+            border:1px solid #ddd;
+            border-radius:4px;
+            margin-bottom:15px;
+        }
+        button{
+            background:#C85E44;
+            color:#fff;
+            border:none;
+            padding:10px 20px;
+            border-radius:4px;
+            cursor:pointer;
+        }
+        .footer{
+            text-align:center;
+            padding:20px;
+            color:#8D6E63;
+            margin-top:30px;
+        }
     </style>
 </head>
 <body>
@@ -69,165 +79,50 @@
     </div>
 
     <div class="container">
-        <div class="profile-card">
-            <div class="profile-avatar" id="avatar">U</div>
-            <div class="profile-username" id="username">--</div>
-            <div class="rename">
-                <input id="newName" placeholder="新用户名">
-                <button onclick="rename()">修改</button>
-            </div>
-            <div class="stats">
-                <div class="stat-item"><div class="stat-value" id="postCount">0</div><div class="stat-label">帖子</div></div>
-                <div class="stat-item"><div class="stat-value" id="likeCount">0</div><div class="stat-label">获赞</div></div>
-            </div>
-        </div>
+        <h2>👤 个人中心</h2>
+        <div class="info" id="info"></div>
 
-        <div class="posts-section">
-            <h3 class="section-title">我的帖子</h3>
-            <div id="userPosts"></div>
-        </div>
-    </div>
-
-    <div class="footer">网页设计答辩作品 · 树洞日记网 版权所有</div>
-
-    <script>
-        window.onload=function(){
-            if(!localStorage.getItem('currentUser')){alert('请登录');location.href='login.html';return;}
-            loadProfile();
-            updateUserLinks();
-        }
-
-        function updateUserLinks(){
-            const u=JSON.parse(localStorage.getItem('currentUser'));
-            document.getElementById('userLinks').innerHTML=
-            `<a href="profile.html">个人中心(${u.username})</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
-        }
-
-        function logout(){
-            if(confirm('确定退出？')){
-                localStorage.removeItem('currentUser');
-                location.href='index.html';
-            }
-        }
-
-        function getUsers(){return JSON.parse(localStorage.getItem('GLOBAL_USERS'))||[];}
-        function saveUsers(us){localStorage.setItem('GLOBAL_USERS',JSON.stringify(us));}
-        function getPosts(){return JSON.parse(localStorage.getItem('GLOBAL_TREEHOLE'))||[];}
-
-        function loadProfile(){
-            const u=JSON.parse(localStorage.getItem('currentUser'));
-            const posts=getPosts().filter(p=>p.authorId===u.userId);
-            document.getElementById('username').innerText=u.username;
-            document.getElementById('avatar').innerText=u.username.charAt(0).toUpperCase();
-            document.getElementById('postCount').innerText=posts.length;
-            const likes=posts.reduce((s,p)=>s+p.likes.length,0);
-            document.getElementById('likeCount').innerText=likes;
-
-            const el=document.getElementById('userPosts');
-            if(posts.length===0){el.innerHTML='<p class="empty-tip">暂无帖子</p>';return;}
-            el.innerHTML=posts.map(p=>`
-            <div class="post-item">
-                <div class="post-meta">${p.createdAt}</div>
-                <div>${p.content}</div>
-                <button class="delete-btn" onclick="del('${p.id}')">删除</button>
-            </div>`).join('');
-        }
-
-        function del(pid){
-            if(!confirm('确定删除？'))return;
-            let list=getPosts();
-            list=list.filter(p=>p.id!==pid);
-            localStorage.setItem('GLOBAL_TREEHOLE',JSON.stringify(list));
-            loadProfile();
-        }
-
-        function rename(){
-            const newName=document.getElementById('newName').value.trim();
-            if(!newName){alert('请输入用户名');return;}
-            const old=JSON.parse(localStorage.getItem('currentUser'));
-            const users=getUsers();
-            if(users.some(x=>x.username===newName && x.userId!==old.userId)){
-                alert('用户名已存在');
-                return;
-            }
-            const user=users.find(x=>x.userId===old.userId);
-            user.username=newName;
-            saveUsers(users);
-            localStorage.setItem('currentUser',JSON.stringify(user));
-            alert('修改成功！');
-            loadProfile();
-            updateUserLinks();
-        }
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title>关于本站 - 树洞日记网</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{
-            font-family:"微软雅黑",sans-serif;
-            background-color: #FEFCE8;
-            background-image: url('https://aka.doubaocdn.com/s/oS8p1wVYWh');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        .nav{
-            background:#FBBF24;
-            padding:18px;text-align:center;
-        }
-        .nav a{
-            color:#fff;
-            text-decoration:none;
-            font-size:18px;
-            margin:0 20px;
-            font-family: 'Nunito', 'Quicksand', sans-serif;
-            font-weight: 700;
-        }
-        .nav a:hover{text-decoration:underline;}
-        .container{
-            width:900px;
-            margin:40px auto;
-            background: rgba(255, 255, 255, 0.85);
-            padding:40px;
-            border-radius:8px;
-            box-shadow:0 0 8px rgba(251, 191, 36, 0.15);
-            line-height:2.2;
-        }
-        h2{text-align:center;color:#374151;margin-bottom:25px;}
-        p{color:#4B5563;font-size:16px;}
-        .footer{text-align:center;padding:20px;color:#4B5563;margin-top:50px;}
-    </style>
-</head>
-<body>
-    <div class="nav">
-        <a href="index.html">首页</a>
-        <a href="diary.html">写日记</a>
-        <a href="diary_list.html">日记列表</a>
-        <a href="treehole.html">匿名树洞</a>
-        <a href="about.html">关于本站</a>
-    </div>
-
-    <div class="container">
-        <h2>关于 树洞日记网</h2>
-        <p>1. 网站简介：</p>
-        <p>树洞日记网是一款集个人日记记录与匿名树洞倾诉于一体的网页平台，用户可以自由书写日常心情，也可以在匿名树洞发布心事、匿名留言评论。</p>
-        <br>
-        <p>2. 开发技术：</p>
-        <p>采用 HTML5 + CSS3 + JavaScript 开发，布局简洁美观，页面统一风格，实现页面跳转、表单提交、匿名发帖、匿名评论等基础交互功能。</p>
-        <br>
-        <p>3. 设计目的：</p>
-        <p>为使用者提供一个私密、温柔的情绪记录与倾诉空间，同时作为网页设计课程答辩作品，巩固前端网页制作基础技术。</p>
-        <br>
-        <p>4. 功能模块：</p>
-        <p>首页导航、个人日记撰写、匿名树洞发帖、匿名评论、关于本站介绍。</p>
+        <input id="newName" placeholder="输入新用户名">
+        <button onclick="updateName()">修改用户名（全局同步）</button>
     </div>
 
     <div class="footer">
         网页设计答辩作品 · 树洞日记网 版权所有
     </div>
+
+<script>
+const API = "https://tree-hole-api.onrender.com";
+let user = JSON.parse(localStorage.getItem("user") || "null");
+
+window.onload = function () {
+    if (!user) { location.href = "login.html"; return; }
+    document.getElementById("info").innerHTML = `
+        用户名：${user.username}<br>
+        手机号：${user.phone}<br>
+        用户ID：${user.id}
+    `;
+    
+    let s = document.getElementById("userLinks");
+    s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
+};
+function logout(){localStorage.removeItem("user");location.href="index.html";}
+
+async function updateName() {
+    let newName = document.getElementById("newName").value.trim();
+    if (!newName) return alert("请输入新用户名");
+    
+    let res = await fetch(API+"/rename?uid="+user.id+"&name="+encodeURIComponent(newName));
+    let ok = await res.json();
+    
+    if(ok){
+        user.username = newName;
+        localStorage.setItem("user", JSON.stringify(user));
+        alert("修改成功！全局已同步");
+        location.reload();
+    }else{
+        alert("用户名已被占用");
+    }
+}
+</script>
 </body>
 </html>

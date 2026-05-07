@@ -29,41 +29,72 @@
         .container{
             width:900px;
             margin:40px auto;
-            background: rgba(255, 255, 255, 0.9);
-            padding:30px;
+            background:rgba(255,255,255,0.92);
+            padding:40px;
             border-radius:8px;
-            box-shadow:0 4px 12px rgba(110, 231, 183, 0.15);
         }
-        h2{text-align:center;color:#374151;margin-bottom:25px;}
-        .post-form textarea{
-            width:100%;height:120px;padding:15px;
-            border:1px solid #D1FAE5;border-radius:4px;resize:none;
+        h2{
+            text-align:center;
+            color:#374151;
+            margin-bottom:25px;
+        }
+        textarea{
+            width:100%;
+            height:140px;
+            padding:15px;
+            border:1px solid #D1FAE5;
+            border-radius:6px;
+            font-size:16px;
+            margin-bottom:20px;
             font-family:"微软雅黑",sans-serif;
         }
         button{
-            padding:10px 25px;background:#6EE7B7;color:#fff;
-            border:none;border-radius:4px;cursor:pointer;
+            background:#6EE7B7;
+            color:#fff;
+            border:none;
+            padding:12px 30px;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:16px;
         }
-        button:hover{background:#34D399;}
-        .posts-list{margin-top:40px;}
-        .post-item{
-            border:1px solid #D1FAE5;padding:20px;border-radius:6px;
-            margin-bottom:20px;background:rgba(255,255,255,0.8);
+        .post{
+            border:1px solid #D1FAE5;
+            padding:20px;
+            border-radius:8px;
+            margin-bottom:15px;
         }
-        .post-meta{font-size:12px;color:#6B7280;margin-bottom:10px;}
-        .post-content{color:#374151;line-height:1.6;margin-bottom:15px;}
-        .post-actions{display:flex;gap:15px;align-items:center;}
-        .action-btn{background:none;border:none;color:#6B7280;cursor:pointer;}
-        .action-btn:hover{color:#34D399;}
-        .action-btn.liked{color:#EF4444;}
-        .delete-btn{background:#EF4444;color:white;border:none;padding:5px 10px;border-radius:4px;font-size:12px;margin-left:auto;}
-        .comments-section{border-top:1px dashed #D1FAE5;padding-top:15px;margin-top:15px;}
-        .comment-item{background:#ECFDF5;padding:10px;border-radius:4px;margin-bottom:10px;font-size:14px;color:#4B5563;}
-        .comment-meta{font-size:11px;color:#9CA3AF;margin-bottom:5px;}
-        .comment-form{display:flex;gap:10px;margin-top:10px;}
-        .comment-form textarea{flex-grow:1;height:60px;padding:10px;border:1px solid #D1FAE5;border-radius:4px;}
-        .login-prompt{text-align:center;color:#EF4444;padding:20px;border:1px dashed #D1FAE5;border-radius:4px;}
-        .footer{text-align:center;padding:20px;color:#4B5563;margin-top:50px;}
+        .meta{
+            font-size:13px;
+            color:#6B7280;
+            margin-bottom:8px;
+        }
+        .content{
+            font-size:16px;
+            line-height:1.6;
+            margin-bottom:12px;
+        }
+        .like{
+            background:none;
+            border:none;
+            color:#EF4444;
+            cursor:pointer;
+            font-size:15px;
+        }
+        .del{
+            background:#EF4444;
+            color:#fff;
+            border:none;
+            padding:4px 10px;
+            border-radius:4px;
+            font-size:12px;
+            margin-left:10px;
+            cursor:pointer;
+        }
+        .footer{
+            text-align:center;
+            padding:20px;
+            color:#4B5563;
+        }
     </style>
 </head>
 <body>
@@ -77,166 +108,66 @@
     </div>
 
     <div class="container">
-        <h2>匿名树洞 · 随心倾诉</h2>
-        <div id="postFormContainer"></div>
-        <div class="posts-list" id="postsList"></div>
+        <h2>💬 全球匿名树洞</h2>
+        <textarea id="content" placeholder="分享你的心事，全球用户都能看到～"></textarea>
+        <button onclick="send()">发布帖子</button>
+        <div id="list" style="margin-top:30px;"></div>
     </div>
 
-    <div class="footer">网页设计答辩作品 · 树洞日记网 版权所有</div>
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
 
-    <script>
-        window.onload = function(){
-            updateUserLinks();
-            renderPostForm();
-            renderPosts();
-        }
+<script>
+const API = "https://tree-hole-api.onrender.com";
+let user = JSON.parse(localStorage.getItem("user") || "null");
 
-        function checkLoginStatus(){
-            return !!localStorage.getItem('currentUser');
-        }
+window.onload = async function () {
+    render();
+    let s = document.getElementById("userLinks");
+    if (user) {
+        s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
+    } else {
+        s.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
+    }
+};
+function logout() { localStorage.removeItem("user"); location.href = "index.html"; }
 
-        function getCurrentUser(){
-            return JSON.parse(localStorage.getItem('currentUser'));
-        }
+async function send() {
+    if (!user) return alert("请登录");
+    let c = document.getElementById("content").value.trim();
+    if (!c) return;
+    await fetch(API+"/addPost?uid="+user.id+"&content="+encodeURIComponent(c));
+    document.getElementById("content").value = "";
+    render();
+}
 
-        function redirectToLogin(){
-            alert('请先登录！');
-            location.href='login.html';
-        }
+async function render() {
+    let res = await fetch(API+"/getPosts");
+    let posts = await res.json();
+    let html = "";
+    posts.forEach(p => {
+        let isMine = user && user.id === p.uid;
+        html += `
+        <div class="post">
+            <div class="meta">${p.time}</div>
+            <div class="content">${p.content}</div>
+            <button class="like" onclick="like('${p.id}')">❤️ ${p.like}</button>
+            ${isMine ? `<button class="del" onclick="del('${p.id}')">删除</button>` : ""}
+        </div>`;
+    });
+    document.getElementById("list").innerHTML = html;
+}
 
-        function updateUserLinks(){
-            const u = getCurrentUser();
-            const el = document.getElementById('userLinks');
-            if(u){
-                el.innerHTML = `
-                <a href="profile.html">个人中心(${u.username})</a>
-                <a href="javascript:void(0)" onclick="logout()">退出登录</a>`;
-            }else{
-                el.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
-            }
-        }
+async function like(id) {
+    await fetch(API+"/like?id="+id);
+    render();
+}
 
-        function logout(){
-            if(confirm('确定退出？')){
-                localStorage.removeItem('currentUser');
-                location.href='index.html';
-            }
-        }
-
-        function renderPostForm(){
-            const el = document.getElementById('postFormContainer');
-            if(!checkLoginStatus()){
-                el.innerHTML = `<div class="login-prompt">请<a href="login.html">登录</a>后发布</div>`;
-                return;
-            }
-            el.innerHTML = `
-            <div class="post-form">
-                <textarea id="postContent" placeholder="写下你的心事..."></textarea>
-                <button onclick="publishPost()">发布</button>
-            </div>`;
-        }
-
-        function getGlobalPosts(){
-            return JSON.parse(localStorage.getItem('GLOBAL_TREEHOLE'))||[];
-        }
-
-        function saveGlobalPosts(p){
-            localStorage.setItem('GLOBAL_TREEHOLE',JSON.stringify(p));
-        }
-
-        function publishPost(){
-            const content = document.getElementById('postContent').value.trim();
-            if(!content){alert('内容不能为空');return;}
-            const u = getCurrentUser();
-            const list = getGlobalPosts();
-            list.unshift({
-                id:Date.now().toString(),
-                content:content,
-                authorId:u.userId,
-                createdAt:new Date().toLocaleString(),
-                likes:[],comments:[]
-            });
-            saveGlobalPosts(list);
-            document.getElementById('postContent').value='';
-            renderPosts();
-        }
-
-        function renderPosts(){
-            const list = getGlobalPosts();
-            const el = document.getElementById('postsList');
-            const u = getCurrentUser();
-            if(list.length===0){el.innerHTML='<div style="text-align:center;color:#888;">暂无帖子</div>';return;}
-            let html='';
-            list.forEach(p=>{
-                const isLiked = u && p.likes.includes(u.userId);
-                const isMine = u && p.authorId === u.userId;
-                html+=`
-                <div class="post-item">
-                    <div class="post-meta">${p.createdAt}</div>
-                    <div class="post-content">${p.content}</div>
-                    <div class="post-actions">
-                        <button class="action-btn ${isLiked?'liked':''}" onclick="like('${p.id}')">❤️ ${p.likes.length}</button>
-                        <button class="action-btn" onclick="toggleComment('${p.id}')">💬 ${p.comments.length}</button>
-                        ${isMine?`<button class="delete-btn" onclick="delPost('${p.id}')">删除</button>`:''}
-                    </div>
-                    <div class="comments-section" id="c_${p.id}" style="display:none">
-                        ${p.comments.map(c=>`
-                        <div class="comment-item">
-                            <div class="comment-meta">${c.createdAt}</div>
-                            <div>${c.content}</div>
-                        </div>`).join('')}
-                        ${u?`
-                        <div class="comment-form">
-                            <textarea id="cmt_${p.id}"></textarea>
-                            <button onclick="comment('${p.id}')">回复</button>
-                        </div>`:''}
-                    </div>
-                </div>`;
-            });
-            el.innerHTML=html;
-        }
-
-        function like(pid){
-            if(!checkLoginStatus())return redirectToLogin();
-            const u=getCurrentUser();
-            const list=getGlobalPosts();
-            const p=list.find(x=>x.id===pid);
-            if(!p)return;
-            const idx=p.likes.indexOf(u.userId);
-            if(idx===-1)p.likes.push(u.userId);
-            else p.likes.splice(idx,1);
-            saveGlobalPosts(list);
-            renderPosts();
-        }
-
-        function toggleComment(pid){
-            const el=document.getElementById('c_'+pid);
-            el.style.display=el.style.display=='none'?'block':'none';
-        }
-
-        function comment(pid){
-            if(!checkLoginStatus())return redirectToLogin();
-            const u=getCurrentUser();
-            const content=document.getElementById('cmt_'+pid).value.trim();
-            if(!content)return;
-            const list=getGlobalPosts();
-            const p=list.find(x=>x.id===pid);
-            p.comments.push({
-                content:content,
-                createdAt:new Date().toLocaleString()
-            });
-            saveGlobalPosts(list);
-            document.getElementById('cmt_'+pid).value='';
-            renderPosts();
-        }
-
-        function delPost(pid){
-            if(!confirm('确定删除？'))return;
-            let list=getGlobalPosts();
-            list=list.filter(x=>x.id!==pid);
-            saveGlobalPosts(list);
-            renderPosts();
-        }
-    </script>
+async function del(id) {
+    await fetch(API+"/del?id="+id+"&uid="+user.id);
+    render();
+}
+</script>
 </body>
 </html>

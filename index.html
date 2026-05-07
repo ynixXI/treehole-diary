@@ -65,57 +65,53 @@
 </head>
 <body>
     <div class="nav">
-    <a href="index.html">首页</a>
-    <a href="diary.html">写日记</a>
-    <a href="diary_list.html">日记列表</a>
-    <a href="treehole.html">匿名树洞</a>
-    <a href="about.html">关于本站</a>
-    <span id="userLinks"></span>
-</div>
+        <a href="index.html">首页</a>
+        <a href="diary.html">写日记</a>
+        <a href="diary_list.html">日记列表</a>
+        <a href="treehole.html">匿名树洞</a>
+        <a href="about.html">关于本站</a>
+        <span id="userLinks"></span>
+    </div>
 
 <script>
-    window.onload = function() {
-        updateUserLinks();
-    };
+const API = "https://tree-hole-api.onrender.com";
 
-    function updateUserLinks() {
-        const userLinks = document.getElementById('userLinks');
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        
-        if (currentUser) {
-            userLinks.innerHTML = `
-                <a href="profile.html">个人中心 (${currentUser.username})</a>
-                <a href="javascript:void(0)" onclick="logout()">退出登录</a>
-            `;
-        } else {
-            userLinks.innerHTML = `
-                <a href="login.html">登录</a>
-                <a href="register.html">注册</a>
-            `;
-        }
+window.onload = function() {
+    let user = JSON.parse(localStorage.getItem('user')||'null');
+    let userLinks = document.getElementById('userLinks');
+    if (user) {
+        userLinks.innerHTML = `
+            <a href="profile.html">个人中心 (${user.username})</a>
+            <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+        `;
+    } else {
+        userLinks.innerHTML = `
+            <a href="login.html">登录</a>
+            <a href="register.html">注册</a>
+        `;
     }
+};
 
-    function logout() {
-        if (confirm('确定要退出登录吗？')) {
-            localStorage.removeItem('currentUser');
-            updateUserLinks();
-            alert('已退出登录');
-        }
+function logout() {
+    if (confirm('确定退出？')) {
+        localStorage.removeItem('user');
+        location.href='index.html';
     }
+}
 </script>
 
     <div class="banner">
         <h1>
-            <img src="https://aka.doubaocdn.com/s/xy861wVXkl" alt="可爱的猫咪" class="title-animal">
-            树洞日记网 Treehole Diary
-            <img src="https://aka.doubaocdn.com/s/lal11wVXyM" alt="可爱的兔子" class="title-animal">
+            <img src="https://aka.doubaocdn.com/s/xy861wVXkl" class="title-animal">
+            树洞日记网
+            <img src="https://aka.doubaocdn.com/s/lal11wVXyM" class="title-animal">
         </h1>
         <p>记录生活点滴 | 匿名倾诉心事 | 温柔匿名评论</p>
     </div>
 
     <div class="wrap">
         <div class="card">
-            <img src="https://aka.doubaocdn.com/s/WRRh1wVXeb" alt="个人日记" class="card-img">
+            <img src="https://aka.doubaocdn.com/s/WRRh1wVXeb" class="card-img">
             <div class="card-content">
                 <h2>个人日记</h2>
                 <p>写下专属日记，珍藏每一天心情</p>
@@ -123,7 +119,7 @@
             </div>
         </div>
         <div class="card">
-            <img src="https://aka.doubaocdn.com/s/8UiK1wVXeZ" alt="匿名树洞" class="card-img">
+            <img src="https://aka.doubaocdn.com/s/8UiK1wVXeZ" class="card-img">
             <div class="card-content">
                 <h2>匿名树洞</h2>
                 <p>匿名发帖、匿名评论，无人知晓你的身份</p>

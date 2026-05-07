@@ -2,19 +2,19 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>日记列表 - 树洞日记网</title>
+    <title>我的日记 - 树洞日记网</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{
             font-family:"微软雅黑",sans-serif;
-            background-color: #E0E0E0;
-            background-image: url('https://aka.doubaocdn.com/s/RDj01wVYDu');
+            background-color: #FDF6ED;
+            background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
         .nav{
-            background:#3A5F56;
+            background:#C85E44;
             padding:18px;text-align:center;
         }
         .nav a{
@@ -29,27 +29,37 @@
         .container{
             width:900px;
             margin:40px auto;
-            background: rgba(240, 240, 240, 0.85);
-            padding:30px;
+            background:rgba(254,251,246,0.95);
+            padding:40px;
             border-radius:8px;
-            box-shadow:0 0 8px rgba(0, 0, 0, 0.15);
         }
-        h2{text-align:center;color:#333333;margin-bottom:25px;}
-        .diary-list{margin-top:20px;}
-        .diary-item{
-            border-bottom:1px solid #ccc;
-            padding:15px 0;
-            color:#555555;
-            margin-bottom: 15px;
+        h2{
+            text-align:center;
+            color:#5D4037;
+            margin-bottom:30px;
         }
-        .diary-date { font-weight: bold; color: #333333; margin-bottom: 5px; }
-        .diary-content { line-height: 1.6; }
-        .delete-btn {
-            float: right; background: #ef4444; color: white; border: none;
-            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;
+        .item{
+            border-left:4px solid #C85E44;
+            padding:15px 20px;
+            margin-bottom:15px;
+            background:#fff;
+            border-radius:6px;
+            line-height:1.6;
         }
-        .empty-tip { text-align: center; color: #888; padding: 20px; }
-        .footer{text-align:center;padding:20px;color:#555555;margin-top:50px;}
+        .time{
+            font-size:14px;
+            color:#999;
+            margin-bottom:6px;
+        }
+        .content{
+            font-size:16px;
+            color:#333;
+        }
+        .footer{
+            text-align:center;
+            padding:20px;
+            color:#8D6E63;
+        }
     </style>
 </head>
 <body>
@@ -63,76 +73,40 @@
     </div>
 
     <div class="container">
-        <h2>我的日记列表</h2>
-        <div class="diary-list" id="diaryList"></div>
+        <h2>📖 我的云端日记</h2>
+        <div id="list"></div>
     </div>
 
-    <div class="footer">网页设计答辩作品 · 树洞日记网 版权所有</div>
+    <div class="footer">
+        网页设计答辩作品 · 树洞日记网 版权所有
+    </div>
 
-    <script>
-        window.onload = function() {
-            updateUserLinks();
-            if (!checkLoginStatus()) redirectToLogin();
-            else loadDiaries();
-        };
+<script>
+const API = "https://tree-hole-api.onrender.com";
+let user = JSON.parse(localStorage.getItem("user") || "null");
 
-        function checkLoginStatus() { return !!localStorage.getItem('currentUser'); }
-        function redirectToLogin() { alert('请先登录！'); location.href = 'login.html'; }
+async function load() {
+    if (!user) { location.href = "login.html"; return; }
+    let res = await fetch(API+"/getDiary?uid="+user.id);
+    let list = await res.json();
+    let html = "";
+    list.forEach(i => {
+        html += `<div class="item"><div class="time">${i.time}</div><div class="content">${i.content}</div></div>`;
+    });
+    document.getElementById("list").innerHTML = html;
+}
 
-        function updateUserLinks() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const el = document.getElementById('userLinks');
-            if (user) {
-                el.innerHTML = `
-                    <a href="profile.html">个人中心 (${user.username})</a>
-                    <a href="javascript:void(0)" onclick="logout()">退出</a>
-                `;
-            } else {
-                el.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
-            }
-        }
-
-        function logout() {
-            if (confirm('确定退出？')) {
-                localStorage.removeItem('currentUser');
-                location.href = 'index.html';
-            }
-        }
-
-        function loadDiaries() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const key = user.userId + '_diaries';
-            const diaries = JSON.parse(localStorage.getItem(key)) || [];
-            const container = document.getElementById('diaryList');
-
-            if (diaries.length === 0) {
-                container.innerHTML = '<p class="empty-tip">暂无日记</p>';
-                return;
-            }
-
-            const reversed = [...diaries].reverse();
-            let html = '';
-            reversed.forEach((d, i) => {
-                const idx = diaries.length - 1 - i;
-                html += `
-                <div class="diary-item">
-                    <div class="diary-date">${d.date}</div>
-                    <div class="diary-content">${d.content}</div>
-                    <button class="delete-btn" onclick="del(${idx})">删除</button>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-
-        function del(idx) {
-            if (!confirm('确定删除？')) return;
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const key = user.userId + '_diaries';
-            const list = JSON.parse(localStorage.getItem(key)) || [];
-            list.splice(idx, 1);
-            localStorage.setItem(key, JSON.stringify(list));
-            loadDiaries();
-        }
-    </script>
+window.onload = function(){
+    let user = JSON.parse(localStorage.getItem('user')||'null');
+    let userLinks = document.getElementById('userLinks');
+    if (user) {
+        userLinks.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
+    } else {
+        userLinks.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
+    }
+    load();
+};
+function logout(){localStorage.removeItem("user");location.href="index.html";}
+</script>
 </body>
 </html>

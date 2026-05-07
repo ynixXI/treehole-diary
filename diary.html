@@ -7,14 +7,14 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{
             font-family:"微软雅黑",sans-serif;
-            background-color: #E0E0E0;
-            background-image: url('https://aka.doubaocdn.com/s/RDj01wVYDu');
+            background-color: #FDF6ED;
+            background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
         }
         .nav{
-            background:#3A5F56;
+            background:#C85E44;
             padding:18px;text-align:center;
         }
         .nav a{
@@ -29,24 +29,46 @@
         .container{
             width:900px;
             margin:40px auto;
-            background: rgba(240, 240, 240, 0.85);
-            padding:30px;
+            background:rgba(254,251,246,0.95);
+            padding:40px;
             border-radius:8px;
-            box-shadow:0 0 8px rgba(0, 0, 0, 0.15);
+            box-shadow:0 4px 12px rgba(200,94,68,0.1);
         }
-        h2{text-align:center;color:#333333;margin-bottom:25px;}
-        textarea{width:100%;height:200px;padding:15px;border:1px solid #ccc;border-radius:4px;resize:none;}
+        h2{
+            text-align:center;
+            color:#5D4037;
+            margin-bottom:30px;
+            font-size:24px;
+        }
+        textarea{
+            width:100%;
+            height:260px;
+            padding:15px;
+            border:1px solid #ddd;
+            border-radius:6px;
+            font-size:16px;
+            font-family:"微软雅黑",sans-serif;
+            resize:none;
+            margin-bottom:20px;
+        }
         button{
-            margin-top:15px;
-            padding:10px 30px;
-            background:#3A5F56;
+            background:#C85E44;
             color:#fff;
             border:none;
-            border-radius:4px;
+            padding:12px 30px;
+            border-radius:6px;
+            font-size:16px;
             cursor:pointer;
         }
-        button:hover{background:#2D4A43;}
-        .footer{text-align:center;padding:20px;color:#555555;margin-top:50px;}
+        button:hover{
+            background:#a14b37;
+        }
+        .footer{
+            text-align:center;
+            padding:20px;
+            color:#8D6E63;
+            margin-top:30px;
+        }
     </style>
 </head>
 <body>
@@ -60,9 +82,8 @@
     </div>
 
     <div class="container">
-        <h2>写下你的心情日记</h2>
-        <textarea id="diaryContent" placeholder="请在这里写下今日日记..."></textarea>
-        <br>
+        <h2>✍️ 撰写个人日记</h2>
+        <textarea id="content" placeholder="请写下今天的心情、故事或感悟……只有你自己能查看哦"></textarea>
         <button onclick="saveDiary()">保存日记</button>
     </div>
 
@@ -70,58 +91,25 @@
         网页设计答辩作品 · 树洞日记网 版权所有
     </div>
 
-    <script>
-        window.onload = function() {
-            updateUserLinks();
-            if (!checkLoginStatus()) redirectToLogin();
-        };
+<script>
+const API = "https://tree-hole-api.onrender.com";
+let user = JSON.parse(localStorage.getItem("user") || "null");
 
-        function checkLoginStatus() {
-            return !!JSON.parse(localStorage.getItem('currentUser'));
-        }
+window.onload = function () {
+    if (!user) { alert("请先登录！"); location.href = "login.html"; return; }
+    let s = document.getElementById("userLinks");
+    s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
+};
+function logout() { localStorage.removeItem("user"); location.href = "index.html"; }
 
-        function redirectToLogin() {
-            alert('请先登录！');
-            window.location.href = 'login.html';
-        }
-
-        function updateUserLinks() {
-            const userLinks = document.getElementById('userLinks');
-            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (currentUser) {
-                userLinks.innerHTML = `
-                    <a href="profile.html">个人中心 (${currentUser.username})</a>
-                    <a href="javascript:void(0)" onclick="logout()">退出登录</a>
-                `;
-            } else {
-                userLinks.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
-            }
-        }
-
-        function logout() {
-            if (confirm('确定退出？')) {
-                localStorage.removeItem('currentUser');
-                location.href = 'index.html';
-            }
-        }
-
-        function saveDiary() {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            const content = document.getElementById('diaryContent').value.trim();
-            if (!content) { alert('内容不能为空'); return; }
-
-            const date = new Date().toLocaleDateString('zh-CN', {
-                year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-            });
-
-            const key = user.userId + '_diaries';
-            const diaries = JSON.parse(localStorage.getItem(key)) || [];
-            diaries.push({ date, content });
-            localStorage.setItem(key, JSON.stringify(diaries));
-
-            alert('日记保存成功！');
-            document.getElementById('diaryContent').value = '';
-        }
-    </script>
+async function saveDiary() {
+    let content = document.getElementById("content").value.trim();
+    if (!content) return alert("请输入内容");
+    
+    await fetch(API+"/addDiary?uid="+user.id+"&content="+encodeURIComponent(content));
+    alert("保存成功！日记已同步到云端");
+    document.getElementById("content").value = "";
+}
+</script>
 </body>
 </html>
