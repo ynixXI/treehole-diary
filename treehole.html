@@ -119,18 +119,11 @@
     </div>
 
 <script>
-const API = "https://tree-hole-api.onrender.com";
-
-// 修复登录状态读取 BUG
 let user = null;
-try {
-    user = JSON.parse(localStorage.getItem("user"));
-} catch (e) {
-    user = null;
-}
+try { user = JSON.parse(localStorage.getItem("user")); } catch(e) { user = null; }
 
-window.onload = async function () {
-    render();
+window.onload = function () {
+    renderPosts();
     let s = document.getElementById("userLinks");
     if (user && user.id) {
         s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
@@ -138,47 +131,57 @@ window.onload = async function () {
         s.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
     }
 };
-function logout() { localStorage.removeItem("user"); location.href = "index.html"; }
 
-// 修复发帖判断登录 BUG
-async function send() {
+function logout() {
+    localStorage.removeItem("user");
+    location.href = "index.html";
+}
+
+function send() {
     if (!user || !user.id) {
-        alert("您还未登录，请先登录！");
+        alert("请先登录！");
         location.href = "login.html";
         return;
     }
-    let c = document.getElementById("content").value.trim();
-    if (!c) return;
-    await fetch(API+"/addPost?uid="+user.id+"&content="+encodeURIComponent(c));
+
+    let content = document.getElementById("content").value.trim();
+    if (!content) return;
+
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    posts.unshift({
+        id: Date.now(),
+        uid: user.id,
+        content: content,
+        time: new Date().toLocaleString(),
+        like: 0
+    });
+
+    localStorage.setItem("posts", JSON.stringify(posts));
     document.getElementById("content").value = "";
-    render();
+    renderPosts();
 }
 
-async function render() {
-    let res = await fetch(API+"/getPosts");
-    let posts = await res.json();
+function renderPosts() {
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
     let html = "";
     posts.forEach(p => {
-        let isMine = user && user.id === p.uid;
+        let isMine = user && user.id == p.uid;
         html += `
         <div class="post">
             <div class="meta">${p.time}</div>
             <div class="content">${p.content}</div>
-            <button class="like" onclick="like('${p.id}')">❤️ ${p.like}</button>
-            ${isMine ? `<button class="del" onclick="del('${p.id}')">删除</button>` : ""}
+            <button class="like">❤️ ${p.like || 0}</button>
+            ${isMine ? `<button class="del" onclick="del(${p.id})">删除</button>` : ""}
         </div>`;
     });
     document.getElementById("list").innerHTML = html;
 }
 
-async function like(id) {
-    await fetch(API+"/like?id="+id);
-    render();
-}
-
-async function del(id) {
-    await fetch(API+"/del?id="+id+"&uid="+user.id);
-    render();
+function del(id) {
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    posts = posts.filter(p => p.id != id);
+    localStorage.setItem("posts", JSON.stringify(posts));
+    renderPosts();
 }
 </script>
 </body>

@@ -95,21 +95,23 @@
     </div>
 
 <script>
-const API = "https://tree-hole-api.onrender.com";
-
-async function login(){
+function login() {
     let account = document.getElementById("account").value.trim();
     let pwd = document.getElementById("pwd").value.trim();
-    if(!account || !pwd) return alert("请填写完整");
+    
+    if(!account || !pwd) {
+        alert("请填写完整");
+        return;
+    }
 
-    let res = await fetch(API+"/login?account="+encodeURIComponent(account)+"&pwd="+encodeURIComponent(pwd));
-    let user = await res.json();
+    let users = JSON.parse(localStorage.getItem("users") || "[]");
+    let user = users.find(u => (u.username == account || u.phone == account) && u.pwd == pwd);
 
-    if(user && user.id){
+    if(user) {
         localStorage.setItem("user", JSON.stringify(user));
         alert("登录成功");
         location.href = "index.html";
-    }else{
+    } else {
         alert("账号或密码错误");
     }
 }

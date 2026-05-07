@@ -75,26 +75,41 @@
     <div class="footer">树洞日记网 © 版权所有</div>
 
 <script>
-const API = "https://tree-hole-api.onrender.com";
-
-async function reg(){
+function reg() {
     let phone = document.getElementById("phone").value.trim();
     let name = document.getElementById("name").value.trim();
     let pwd = document.getElementById("pwd").value.trim();
     let cpwd = document.getElementById("cpwd").value.trim();
 
-    if(!phone||!name||!pwd||pwd!==cpwd) return alert("信息不完整或密码不一致");
-
-    let res = await fetch(API+"/reg?phone="+encodeURIComponent(phone)+"&name="+encodeURIComponent(name)+"&pwd="+encodeURIComponent(pwd));
-    let ok = await res.json();
-
-    if(ok){
-        alert("注册成功！请登录");
-        location.href="login.html";
-    }else{
-        alert("手机号/用户名已存在");
+    if(!phone || !name || !pwd || pwd != cpwd) {
+        alert("信息不完整或两次密码不一致");
+        return;
     }
+
+    let users = JSON.parse(localStorage.getItem("users") || "[]");
+
+    let hasPhone = users.some(u => u.phone == phone);
+    let hasName = users.some(u => u.username == name);
+
+    if(hasPhone) {
+        alert("该手机号已注册");
+        return;
+    }
+    if(hasName) {
+        alert("用户名已被占用");
+        return;
+    }
+
+    users.push({
+        id: Date.now(),
+        phone: phone,
+        username: name,
+        pwd: pwd
+    });
+
+    localStorage.setItem("users", JSON.stringify(users));
+    alert("注册成功！请登录");
+    location.href = "login.html";
 }
 </script>
 </body>
-</html>
