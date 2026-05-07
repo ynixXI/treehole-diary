@@ -166,15 +166,8 @@
     <div class="container">
         <h2>匿名树洞 · 随心倾诉</h2>
         
-        <!-- 发帖表单 -->
-        <div id="postFormContainer">
-            <!-- 表单将在这里动态生成 -->
-        </div>
-
-        <!-- 帖子列表 -->
-        <div class="posts-list" id="postsList">
-            <!-- 帖子将在这里动态生成 -->
-        </div>
+        <div id="postFormContainer"></div>
+        <div class="posts-list" id="postsList"></div>
     </div>
 
     <div class="footer">
@@ -182,31 +175,26 @@
     </div>
 
     <script>
-        // 页面加载时渲染帖子和用户链接
         window.onload = function() {
             updateUserLinks();
             renderPostForm();
             renderPosts();
         };
 
-        // 检查用户是否登录
         function checkLoginStatus() {
             return !!JSON.parse(localStorage.getItem('currentUser'));
         }
 
-        // 获取当前用户ID
         function getCurrentUserId() {
             const user = JSON.parse(localStorage.getItem('currentUser'));
             return user ? user.userId : null;
         }
 
-        // 重定向到登录页面
         function redirectToLogin() {
             alert('请先登录！');
             window.location.href = 'login.html';
         }
 
-        // 更新用户链接
         function updateUserLinks() {
             const userLinks = document.getElementById('userLinks');
             const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -224,10 +212,10 @@
             }
         }
 
-        // 退出登录
         function logout() {
             if (confirm('确定要退出登录吗？')) {
                 localStorage.removeItem('currentUser');
+                localStorage.removeItem("nowUser");
                 updateUserLinks();
                 renderPostForm();
                 renderPosts();
@@ -235,7 +223,6 @@
             }
         }
 
-        // 渲染发帖表单
         function renderPostForm() {
             const container = document.getElementById('postFormContainer');
             if (checkLoginStatus()) {
@@ -254,7 +241,6 @@
             }
         }
 
-        // 生成唯一ID
         function generateUUID() {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
                 var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -262,17 +248,15 @@
             });
         }
 
-        // 获取所有帖子
+        // ======================= 修复：全局公共存储 =======================
         function getPosts() {
-            return JSON.parse(localStorage.getItem('treeholePosts')) || [];
+            return JSON.parse(localStorage.getItem('PUBLIC_TREEHOLE') || '[]');
         }
-
-        // 保存帖子
         function savePosts(posts) {
-            localStorage.setItem('treeholePosts', JSON.stringify(posts));
+            localStorage.setItem('PUBLIC_TREEHOLE', JSON.stringify(posts));
         }
+        // ================================================================
 
-        // 发布帖子
         function publishPost() {
             if (!checkLoginStatus()) {
                 redirectToLogin();
@@ -302,7 +286,6 @@
             alert('发布成功！');
         }
 
-        // 渲染帖子列表
         function renderPosts() {
             const postsList = document.getElementById('postsList');
             const posts = getPosts();
@@ -345,7 +328,6 @@
             });
         }
 
-        // 渲染评论
         function renderComments(comments) {
             if (comments.length === 0) return '';
             return comments.map(comment => `
@@ -356,7 +338,6 @@
             `).join('');
         }
 
-        // 点赞帖子
         function likePost(postId) {
             if (!checkLoginStatus()) {
                 redirectToLogin();
@@ -379,7 +360,6 @@
             }
         }
 
-        // 切换评论表单显示
         function toggleCommentForm(postId) {
             if (!checkLoginStatus()) {
                 redirectToLogin();
@@ -390,7 +370,6 @@
             form.style.display = form.style.display === 'none' ? 'flex' : 'none';
         }
 
-        // 发布评论
         function postComment(postId) {
             if (!checkLoginStatus()) {
                 redirectToLogin();
@@ -421,7 +400,6 @@
             }
         }
 
-        // 删除帖子
         function deletePost(postId) {
             if (confirm('确定要删除这个帖子吗？')) {
                 let posts = getPosts();
