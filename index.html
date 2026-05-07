@@ -8,7 +8,6 @@
         body{
             font-family:"微软雅黑",sans-serif;
             background-color: #FDF6ED;
-            /* 添加温馨的背景图 */
             background-image: url('https://aka.doubaocdn.com/s/UUmX1wVY5S');
             background-size: cover;
             background-position: center;
@@ -25,7 +24,6 @@
         }
         .nav a:hover{text-decoration:underline;}
         .banner{
-            /* 使用半透明背景，既能看到背景图，又能保证文字清晰 */
             background: rgba(254, 251, 246, 0.9);
             padding:60px 0;
             text-align:center;
@@ -35,7 +33,6 @@
         .wrap{width:1000px;margin:50px auto;display:flex;justify-content:space-around;}
         .card{
             width:45%;
-            /* 使用半透明背景，与banner保持一致 */
             background: rgba(254, 251, 246, 0.9);
             padding:0;
             border-radius:8px;
@@ -58,7 +55,6 @@
         .card a:hover{background:#A14E3A;}
         .footer{text-align:center;padding:20px;color:#8D6E63;margin-top:50px;}
         
-        /* 标题两侧的动物图片样式 */
         .title-animal {
             width: 80px;
             height: auto;
@@ -78,7 +74,6 @@
 </div>
 
 <script>
-    // 页面加载时更新用户链接
     window.onload = function() {
         updateUserLinks();
     };
@@ -88,13 +83,11 @@
         const currentUser = JSON.parse(localStorage.getItem('currentUser'));
         
         if (currentUser) {
-            // 用户已登录
             userLinks.innerHTML = `
                 <a href="profile.html">个人中心 (${currentUser.username})</a>
                 <a href="javascript:void(0)" onclick="logout()">退出登录</a>
             `;
         } else {
-            // 用户未登录
             userLinks.innerHTML = `
                 <a href="login.html">登录</a>
                 <a href="register.html">注册</a>
@@ -105,6 +98,9 @@
     function logout() {
         if (confirm('确定要退出登录吗？')) {
             localStorage.removeItem('currentUser');
+            // ========== 我只加了这一行 ==========
+            localStorage.removeItem("nowUser");
+            
             updateUserLinks();
             alert('已退出登录');
         }

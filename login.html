@@ -122,6 +122,10 @@
                     userId: user.userId,
                     username: user.username
                 }));
+                
+                // ✅ 修复：这里是关键！让日记和数据能记住当前用户
+                localStorage.setItem("nowUser", username);
+
                 alert('登录成功！');
                 window.location.href = 'index.html';
             } else {
