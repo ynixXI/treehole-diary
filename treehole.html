@@ -120,12 +120,19 @@
 
 <script>
 const API = "https://tree-hole-api.onrender.com";
-let user = JSON.parse(localStorage.getItem("user") || "null");
+
+// 修复登录状态读取 BUG
+let user = null;
+try {
+    user = JSON.parse(localStorage.getItem("user"));
+} catch (e) {
+    user = null;
+}
 
 window.onload = async function () {
     render();
     let s = document.getElementById("userLinks");
-    if (user) {
+    if (user && user.id) {
         s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
     } else {
         s.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
@@ -133,8 +140,13 @@ window.onload = async function () {
 };
 function logout() { localStorage.removeItem("user"); location.href = "index.html"; }
 
+// 修复发帖判断登录 BUG
 async function send() {
-    if (!user) return alert("请登录");
+    if (!user || !user.id) {
+        alert("您还未登录，请先登录！");
+        location.href = "login.html";
+        return;
+    }
     let c = document.getElementById("content").value.trim();
     if (!c) return;
     await fetch(API+"/addPost?uid="+user.id+"&content="+encodeURIComponent(c));
