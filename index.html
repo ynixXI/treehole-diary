@@ -74,15 +74,17 @@
     </div>
 
 <script>
-const API = "https://tree-hole-api.onrender.com";
+function getUser() {
+  try { return JSON.parse(localStorage.getItem("user")); } catch(e) { return null; }
+}
 
 window.onload = function() {
-    let user = JSON.parse(localStorage.getItem('user')||'null');
+    let user = getUser();
     let userLinks = document.getElementById('userLinks');
     if (user) {
         userLinks.innerHTML = `
-            <a href="profile.html">个人中心 (${user.username})</a>
-            <a href="javascript:void(0)" onclick="logout()">退出登录</a>
+            <a href="profile.html">${user.username}</a>
+            <a href="javascript:logout()">退出登录</a>
         `;
     } else {
         userLinks.innerHTML = `
@@ -93,10 +95,8 @@ window.onload = function() {
 };
 
 function logout() {
-    if (confirm('确定退出？')) {
-        localStorage.removeItem('user');
-        location.href='index.html';
-    }
+    localStorage.removeItem("user");
+    location.href = "index.html";
 }
 </script>
 

@@ -22,7 +22,7 @@
             text-decoration:none;
             font-size:18px;
             margin:0 20px;
-            font-family: 'Nunito', 'Quicksand', sans-serif;
+            font-family: 'Nunuto', 'Quicksand', sans-serif;
             font-weight: 700;
         }
         .nav a:hover{text-decoration:underline;}
@@ -94,6 +94,7 @@ let user = JSON.parse(localStorage.getItem("user") || "null");
 
 // 加载日记：优先云端，失败则加载本地备份
 async function load() {
+    // 【修复 1】解决作用域冲突，使用全局的 user
     if (!user) { 
         location.href = "login.html"; 
         return; 
@@ -119,7 +120,15 @@ async function load() {
         // 2. API失败时，加载本地备份
         console.error("云端加载失败，使用本地备份:", error);
         tipDom.innerHTML = "⚠️ 云端暂时不可用，显示本地备份日记";
-        diaryList = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
+    }
+
+    // 【修复 2】无论成功失败，最后都强制读取本地日记（解决 GitHub 不显示）
+    let localDiaries = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
+    
+    // 【修复 3】优先使用本地数据，保证一定能显示
+    if (localDiaries.length > 0) {
+        diaryList = localDiaries;
+        tipDom.innerHTML = "⚠️ 云端暂时不可用，显示本地备份日记";
     }
 
     // 渲染日记列表
@@ -140,7 +149,7 @@ function renderDiaryList(list) {
 }
 
 window.onload = function(){
-    let user = JSON.parse(localStorage.getItem('user')||'null');
+    // 【修复 4】不重复覆盖 user，直接用全局
     let userLinks = document.getElementById('userLinks');
     if (user) {
         userLinks.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
