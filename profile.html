@@ -27,7 +27,7 @@
         }
         .nav a:hover{text-decoration:underline;}
         .container{
-            width:600px;
+            width:800px;
             margin:50px auto;
             background:rgba(254,251,246,0.95);
             padding:40px;
@@ -44,6 +44,10 @@
             line-height:2;
             margin-bottom:30px;
             color:#333;
+            padding:20px;
+            background:#fff;
+            border-radius:8px;
+            margin-bottom:40px;
         }
         input{
             width:100%;
@@ -60,11 +64,101 @@
             border-radius:4px;
             cursor:pointer;
         }
+        button:hover{
+            background:#A14E3A;
+        }
         .footer{
             text-align:center;
             padding:20px;
             color:#8D6E63;
             margin-top:30px;
+        }
+        /* 新增树洞列表样式 */
+        .treehole-section{
+            margin-top:40px;
+            border-top:1px solid #eee;
+            padding-top:30px;
+        }
+        .treehole-item{
+            padding:15px;
+            background:#fff;
+            border-radius:8px;
+            margin-bottom:15px;
+            cursor:pointer;
+            border-left:4px solid #6EE7B7;
+            transition: all 0.2s;
+        }
+        .treehole-item:hover{
+            box-shadow:0 2px 8px rgba(0,0,0,0.1);
+        }
+        .treehole-time{
+            font-size:13px;
+            color:#999;
+            margin-bottom:8px;
+        }
+        .treehole-preview{
+            font-size:15px;
+            color:#333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .treehole-count{
+            font-size:12px;
+            color:#6EE7B7;
+            margin-top:8px;
+        }
+        /* 详情弹窗样式 */
+        .modal{
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background:rgba(0,0,0,0.5);
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:9999;
+            display:none;
+        }
+        .modal-content{
+            width:600px;
+            background:#fff;
+            border-radius:8px;
+            padding:30px;
+            max-height:80vh;
+            overflow-y:auto;
+        }
+        .modal-close{
+            position:absolute;
+            top:20px;
+            right:20px;
+            font-size:24px;
+            cursor:pointer;
+            color:#999;
+        }
+        .modal h3{
+            color:#374151;
+            margin-bottom:20px;
+            padding-bottom:10px;
+            border-bottom:1px solid #eee;
+        }
+        .modal-time{
+            font-size:14px;
+            color:#999;
+            margin-bottom:15px;
+        }
+        .modal-content-text{
+            font-size:16px;
+            line-height:1.8;
+            color:#333;
+            margin-bottom:20px;
+        }
+        .modal-comment-count{
+            font-size:14px;
+            color:#6EE7B7;
+            margin-top:15px;
         }
     </style>
 </head>
@@ -84,6 +178,26 @@
 
         <input id="newName" placeholder="输入新用户名">
         <button onclick="updateName()">修改用户名（全局同步）</button>
+
+        <!-- 新增：我的树洞板块 -->
+        <div class="treehole-section">
+            <h2>🌳 我的树洞发布</h2>
+            <div id="myTreeholeList"></div>
+            <div id="noTreehole" style="text-align:center;color:#999;padding:20px;display:none;">
+                你还没有发布过任何树洞哦～ <a href="treehole.html" style="color:#C85E44;">去发布</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 树洞详情弹窗 -->
+    <div class="modal" id="treeholeModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h3>树洞详情</h3>
+            <div class="modal-time" id="modalTime"></div>
+            <div class="modal-content-text" id="modalContent"></div>
+            <div class="modal-comment-count" id="modalCommentCount"></div>
+        </div>
     </div>
 
     <div class="footer">
@@ -93,34 +207,126 @@
 <script>
 const API = "https://tree-hole-api.onrender.com";
 let user = JSON.parse(localStorage.getItem("user") || "null");
+let currentPosts = []; // 存储当前用户的树洞
 
 window.onload = function () {
     if (!user) { location.href = "login.html"; return; }
+    
+    // 渲染用户基本信息
     document.getElementById("info").innerHTML = `
         用户名：${user.username}<br>
         手机号：${user.phone}<br>
         用户ID：${user.id}
     `;
     
+    // 渲染导航栏用户信息
     let s = document.getElementById("userLinks");
     s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
+    
+    // 加载用户发布的树洞
+    loadMyTreeholes();
 };
-function logout(){localStorage.removeItem("user");location.href="index.html";}
 
+// 退出登录
+function logout(){
+    localStorage.removeItem("user");
+    location.href="index.html";
+}
+
+// 修改用户名
 async function updateName() {
     let newName = document.getElementById("newName").value.trim();
     if (!newName) return alert("请输入新用户名");
     
-    let res = await fetch(API+"/rename?uid="+user.id+"&name="+encodeURIComponent(newName));
-    let ok = await res.json();
-    
-    if(ok){
+    try {
+        let res = await fetch(API+"/rename?uid="+user.id+"&name="+encodeURIComponent(newName));
+        let ok = await res.json();
+        
+        if(ok){
+            user.username = newName;
+            localStorage.setItem("user", JSON.stringify(user));
+            alert("修改成功！全局已同步");
+            location.reload();
+        }else{
+            alert("用户名已被占用");
+        }
+    } catch (error) {
+        console.error("修改用户名失败:", error);
+        // 降级到本地修改
         user.username = newName;
         localStorage.setItem("user", JSON.stringify(user));
-        alert("修改成功！全局已同步");
+        // 更新本地用户数据中的用户名
+        let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+        posts.forEach(post => {
+            if (post.uid === user.id) {
+                // 如果有需要，这里可以同步更新帖子中的用户名
+            }
+        });
+        alert("网络异常，已本地修改用户名！");
         location.reload();
-    }else{
-        alert("用户名已被占用");
+    }
+}
+
+// 加载用户发布的树洞
+function loadMyTreeholes() {
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    // 筛选当前用户发布的树洞
+    currentPosts = posts.filter(post => post.uid === user.id);
+    
+    let treeholeList = document.getElementById("myTreeholeList");
+    let noTreehole = document.getElementById("noTreehole");
+    
+    if (currentPosts.length === 0) {
+        noTreehole.style.display = "block";
+        treeholeList.innerHTML = "";
+        return;
+    }
+    
+    noTreehole.style.display = "none";
+    let html = "";
+    // 渲染用户树洞列表
+    currentPosts.forEach(post => {
+        // 内容预览（截取前50个字符）
+        let preview = post.content.length > 50 ? post.content.substring(0, 50) + "..." : post.content;
+        // 评论数
+        let commentCount = post.comments ? post.comments.length : 0;
+        
+        html += `
+        <div class="treehole-item" onclick="showTreeholeDetail(${post.id})">
+            <div class="treehole-time">发布时间：${post.time}</div>
+            <div class="treehole-preview">${preview}</div>
+            <div class="treehole-count">💬 评论数：${commentCount} | ❤️ 点赞数：${post.like || 0}</div>
+        </div>`;
+    });
+    
+    treeholeList.innerHTML = html;
+}
+
+// 显示树洞详情
+function showTreeholeDetail(postId) {
+    // 找到对应的树洞
+    let post = currentPosts.find(p => p.id === postId);
+    if (!post) return;
+    
+    // 填充弹窗内容
+    document.getElementById("modalTime").textContent = `发布时间：${post.time}`;
+    document.getElementById("modalContent").textContent = post.content;
+    document.getElementById("modalCommentCount").textContent = `评论数：${post.comments ? post.comments.length : 0} | 点赞数：${post.like || 0}`;
+    
+    // 显示弹窗
+    document.getElementById("treeholeModal").style.display = "flex";
+}
+
+// 关闭弹窗
+function closeModal() {
+    document.getElementById("treeholeModal").style.display = "none";
+}
+
+// 点击弹窗外部关闭
+window.onclick = function(event) {
+    let modal = document.getElementById("treeholeModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
     }
 }
 </script>

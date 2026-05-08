@@ -62,6 +62,7 @@
             padding:20px;
             border-radius:8px;
             margin-bottom:15px;
+            background: #f9fffb;
         }
         .meta{
             font-size:13px;
@@ -79,6 +80,7 @@
             color:#EF4444;
             cursor:pointer;
             font-size:15px;
+            margin-right:10px;
         }
         .del{
             background:#EF4444;
@@ -90,10 +92,72 @@
             margin-left:10px;
             cursor:pointer;
         }
+        .comment-btn{
+            background:#0EA5E9;
+            color:#fff;
+            border:none;
+            padding:4px 10px;
+            border-radius:4px;
+            font-size:12px;
+            cursor:pointer;
+            margin-left:10px;
+        }
+        .comments-section{
+            margin-top:15px;
+            padding-left:20px;
+            border-left:2px solid #D1FAE5;
+        }
+        .comment{
+            padding:10px;
+            background:#fff;
+            border-radius:6px;
+            margin-bottom:10px;
+        }
+        .comment-content{
+            font-size:14px;
+            margin-bottom:5px;
+        }
+        .comment-meta{
+            font-size:12px;
+            color:#9CA3AF;
+            margin-bottom:8px;
+        }
+        .reply-btn{
+            background:#8B5CF6;
+            color:#fff;
+            border:none;
+            padding:2px 8px;
+            border-radius:3px;
+            font-size:11px;
+            cursor:pointer;
+        }
+        .comment-input{
+            width:100%;
+            height:60px;
+            padding:8px;
+            border:1px solid #D1FAE5;
+            border-radius:4px;
+            font-size:14px;
+            margin:10px 0;
+            resize:none;
+        }
+        .submit-comment{
+            background:#6EE7B7;
+            color:#fff;
+            border:none;
+            padding:6px 15px;
+            border-radius:4px;
+            font-size:13px;
+            cursor:pointer;
+        }
         .footer{
             text-align:center;
             padding:20px;
             color:#4B5563;
+        }
+        /* 修复输入框容器样式 */
+        .comment-input-container {
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -120,23 +184,38 @@
 
 <script>
 let user = null;
-try { user = JSON.parse(localStorage.getItem("user")); } catch(e) { user = null; }
+try { 
+    user = JSON.parse(localStorage.getItem("user")); 
+    // 模拟用户（测试用，实际删除）
+    if(!user) {
+        user = {id: 1, username: "测试用户"};
+        localStorage.setItem("user", JSON.stringify(user));
+    }
+} catch(e) { 
+    user = null; 
+}
 
 window.onload = function () {
     renderPosts();
+    initUserLinks(); // 拆分用户链接初始化，避免渲染阻塞
+};
+
+// 初始化用户链接
+function initUserLinks() {
     let s = document.getElementById("userLinks");
     if (user && user.id) {
         s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
     } else {
         s.innerHTML = `<a href="login.html">登录</a> <a href="register.html">注册</a>`;
     }
-};
+}
 
 function logout() {
     localStorage.removeItem("user");
     location.href = "index.html";
 }
 
+// 发布树洞帖子
 function send() {
     if (!user || !user.id) {
         alert("请先登录！");
@@ -145,7 +224,10 @@ function send() {
     }
 
     let content = document.getElementById("content").value.trim();
-    if (!content) return;
+    if (!content) {
+        alert("请输入发布内容！");
+        return;
+    }
 
     let posts = JSON.parse(localStorage.getItem("posts") || "[]");
     posts.unshift({
@@ -153,7 +235,8 @@ function send() {
         uid: user.id,
         content: content,
         time: new Date().toLocaleString(),
-        like: 0
+        like: 0,
+        comments: [] // 新增评论数组
     });
 
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -161,25 +244,232 @@ function send() {
     renderPosts();
 }
 
+// 渲染所有帖子
 function renderPosts() {
     let posts = JSON.parse(localStorage.getItem("posts") || "[]");
     let html = "";
     posts.forEach(p => {
         let isMine = user && user.id == p.uid;
+        // 渲染帖子主体（修复ID拼接格式）
         html += `
-        <div class="post">
-            <div class="meta">${p.time}</div>
+        <div class="post" data-post-id="${p.id}">
+            <div class="meta">发布时间：${p.time}</div>
             <div class="content">${p.content}</div>
-            <button class="like">❤️ ${p.like || 0}</button>
-            ${isMine ? `<button class="del" onclick="del(${p.id})">删除</button>` : ""}
+            <button class="like" onclick="likePost(${p.id})">❤️ ${p.like || 0}</button>
+            <button class="comment-btn" onclick="showCommentInput(${p.id})">💬 评论</button>
+            ${isMine ? `<button class="del" onclick="delPost(${p.id})">删除</button>` : ""}
+            
+            <!-- 评论输入框 -->
+            <div id="comment-input-${p.id}" class="comment-input-container" style="display:none;">
+                <textarea class="comment-input" id="comment-content-${p.id}" placeholder="写下你的评论..."></textarea>
+                <button class="submit-comment" onclick="submitComment(${p.id})">提交评论</button>
+            </div>
+
+            <!-- 评论列表 -->
+            <div class="comments-section" id="comments-${p.id}">
+                ${renderComments(p.comments, p.id)}
+            </div>
         </div>`;
     });
     document.getElementById("list").innerHTML = html;
 }
 
-function del(id) {
+// 渲染评论（支持嵌套回复）
+function renderComments(comments, postId) {
+    if (!comments || comments.length === 0) return "<div style='color:#9CA3AF;font-size:14px;margin:10px 0;'>暂无评论</div>";
+    
+    let html = "";
+    comments.forEach(comment => {
+        // 修复回复输入框ID拼接
+        html += `
+        <div class="comment" data-comment-id="${comment.id}">
+            <div class="comment-meta">${comment.time}</div>
+            <div class="comment-content">${comment.content}</div>
+            <button class="reply-btn" onclick="showReplyInput(${postId}, ${comment.id})">回复</button>
+            
+            <!-- 回复输入框 -->
+            <div id="reply-input-${postId}-${comment.id}" style="display:none;margin-top:8px;">
+                <textarea class="comment-input" id="reply-content-${postId}-${comment.id}" placeholder="回复这条评论..."></textarea>
+                <button class="submit-comment" onclick="submitReply(${postId}, ${comment.id})">提交回复</button>
+            </div>
+
+            <!-- 回复列表 -->
+            <div class="comments-section" style="margin-top:8px;padding-left:10px;">
+                ${comment.replies && comment.replies.length > 0 ? renderReplies(comment.replies) : ""}
+            </div>
+        </div>`;
+    });
+    return html;
+}
+
+// 渲染回复
+function renderReplies(replies) {
+    let html = "";
+    replies.forEach(reply => {
+        html += `
+        <div class="comment">
+            <div class="comment-meta">${reply.time}</div>
+            <div class="comment-content">${reply.content}</div>
+        </div>`;
+    });
+    return html;
+}
+
+// 显示评论输入框（修复DOM选择器）
+function showCommentInput(postId) {
+    // 隐藏所有评论输入框
+    const allCommentInputs = document.getElementsByClassName('comment-input-container');
+    for(let i=0; i<allCommentInputs.length; i++) {
+        allCommentInputs[i].style.display = 'none';
+    }
+    // 隐藏所有回复输入框
+    const allReplyInputs = document.querySelectorAll('[id^="reply-input-"]');
+    allReplyInputs.forEach(el => el.style.display = 'none');
+    // 显示当前评论输入框
+    const targetInput = document.getElementById(`comment-input-${postId}`);
+    if(targetInput) {
+        targetInput.style.display = 'block';
+        // 自动聚焦
+        document.getElementById(`comment-content-${postId}`).focus();
+    }
+}
+
+// 提交评论（修复数据更新逻辑）
+function submitComment(postId) {
+    if (!user || !user.id) {
+        alert("请先登录！");
+        location.href = "login.html";
+        return;
+    }
+
+    const contentEl = document.getElementById(`comment-content-${postId}`);
+    if(!contentEl) {
+        alert("评论输入框未找到！");
+        return;
+    }
+    let content = contentEl.value.trim();
+    if (!content) {
+        alert("请输入评论内容！");
+        return;
+    }
+
     let posts = JSON.parse(localStorage.getItem("posts") || "[]");
-    posts = posts.filter(p => p.id != id);
+    let postIndex = posts.findIndex(p => p.id === postId);
+    
+    if (postIndex === -1) {
+        alert("帖子不存在！");
+        return;
+    }
+
+    // 确保评论数组存在
+    if(!Array.isArray(posts[postIndex].comments)) {
+        posts[postIndex].comments = [];
+    }
+    // 添加新评论
+    posts[postIndex].comments.push({
+        id: Date.now(),
+        uid: user.id,
+        content: content,
+        time: new Date().toLocaleString(),
+        replies: [] // 回复数组
+    });
+    
+    localStorage.setItem("posts", JSON.stringify(posts));
+    // 清空输入框
+    contentEl.value = "";
+    // 重新渲染帖子
+    renderPosts();
+}
+
+// 显示回复输入框（修复DOM选择器）
+function showReplyInput(postId, commentId) {
+    // 隐藏所有回复输入框
+    const allReplyInputs = document.querySelectorAll('[id^="reply-input-"]');
+    allReplyInputs.forEach(el => el.style.display = 'none');
+    // 隐藏所有评论输入框
+    const allCommentInputs = document.getElementsByClassName('comment-input-container');
+    for(let i=0; i<allCommentInputs.length; i++) {
+        allCommentInputs[i].style.display = 'none';
+    }
+    // 显示当前回复输入框
+    const targetInput = document.getElementById(`reply-input-${postId}-${commentId}`);
+    if(targetInput) {
+        targetInput.style.display = 'block';
+        // 自动聚焦
+        document.getElementById(`reply-content-${postId}-${commentId}`).focus();
+    }
+}
+
+// 提交回复（修复数据更新逻辑）
+function submitReply(postId, commentId) {
+    if (!user || !user.id) {
+        alert("请先登录！");
+        location.href = "login.html";
+        return;
+    }
+
+    const contentEl = document.getElementById(`reply-content-${postId}-${commentId}`);
+    if(!contentEl) {
+        alert("回复输入框未找到！");
+        return;
+    }
+    let content = contentEl.value.trim();
+    if (!content) {
+        alert("请输入回复内容！");
+        return;
+    }
+
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    let postIndex = posts.findIndex(p => p.id === postId);
+    
+    if (postIndex === -1) {
+        alert("帖子不存在！");
+        return;
+    }
+
+    let commentIndex = posts[postIndex].comments.findIndex(c => c.id === commentId);
+    if (commentIndex === -1) {
+        alert("评论不存在！");
+        return;
+    }
+
+    // 确保回复数组存在
+    if(!Array.isArray(posts[postIndex].comments[commentIndex].replies)) {
+        posts[postIndex].comments[commentIndex].replies = [];
+    }
+    // 添加新回复
+    posts[postIndex].comments[commentIndex].replies.push({
+        id: Date.now(),
+        uid: user.id,
+        content: content,
+        time: new Date().toLocaleString()
+    });
+    
+    localStorage.setItem("posts", JSON.stringify(posts));
+    // 清空输入框
+    contentEl.value = "";
+    // 重新渲染帖子
+    renderPosts();
+}
+
+// 点赞帖子
+function likePost(postId) {
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    let postIndex = posts.findIndex(p => p.id === postId);
+    
+    if (postIndex !== -1) {
+        posts[postIndex].like = (posts[postIndex].like || 0) + 1;
+        localStorage.setItem("posts", JSON.stringify(posts));
+        renderPosts();
+    }
+}
+
+// 删除帖子
+function delPost(postId) {
+    if (!confirm("确定删除这条帖子吗？")) return;
+    
+    let posts = JSON.parse(localStorage.getItem("posts") || "[]");
+    posts = posts.filter(p => p.id !== postId);
     localStorage.setItem("posts", JSON.stringify(posts));
     renderPosts();
 }

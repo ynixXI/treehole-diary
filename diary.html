@@ -96,19 +96,72 @@ const API = "https://tree-hole-api.onrender.com";
 let user = JSON.parse(localStorage.getItem("user") || "null");
 
 window.onload = function () {
-    if (!user) { alert("请先登录！"); location.href = "login.html"; return; }
+    if (!user) { 
+        alert("请先登录！"); 
+        location.href = "login.html"; 
+        return; 
+    }
     let s = document.getElementById("userLinks");
     s.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
 };
-function logout() { localStorage.removeItem("user"); location.href = "index.html"; }
 
+function logout() { 
+    localStorage.removeItem("user"); 
+    location.href = "index.html"; 
+}
+
+// 修复日记保存功能，增加本地备份和错误处理
 async function saveDiary() {
     let content = document.getElementById("content").value.trim();
-    if (!content) return alert("请输入内容");
-    
-    await fetch(API+"/addDiary?uid="+user.id+"&content="+encodeURIComponent(content));
-    alert("保存成功！日记已同步到云端");
-    document.getElementById("content").value = "";
+    if (!content) {
+        alert("请输入日记内容！");
+        return;
+    }
+
+    try {
+        // 方案1：优先使用API保存到云端
+        const response = await fetch(`${API}/addDiary`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                uid: user.id,
+                content: content,
+                time: new Date().toLocaleString()
+            })
+        });
+
+        // 方案2：API不可用时，本地localStorage备份
+        if (!response.ok) {
+            throw new Error('云端保存失败，将使用本地存储');
+        }
+
+        // 本地备份日记数据（双保险）
+        let localDiaries = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
+        localDiaries.unshift({
+            id: Date.now(),
+            content: content,
+            time: new Date().toLocaleString()
+        });
+        localStorage.setItem(`diaries_${user.id}`, JSON.stringify(localDiaries));
+
+        alert("保存成功！日记已安全存储");
+        document.getElementById("content").value = "";
+        
+    } catch (error) {
+        console.error("保存失败:", error);
+        // 降级到纯本地存储
+        let localDiaries = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
+        localDiaries.unshift({
+            id: Date.now(),
+            content: content,
+            time: new Date().toLocaleString()
+        });
+        localStorage.setItem(`diaries_${user.id}`, JSON.stringify(localDiaries));
+        alert("云端保存暂时失败，已为你本地保存日记！");
+        document.getElementById("content").value = "";
+    }
 }
 </script>
 </body>
