@@ -60,6 +60,12 @@
             padding:20px;
             color:#8D6E63;
         }
+        .tip{
+            text-align:center;
+            color:#C85E44;
+            margin:20px 0;
+            font-size:16px;
+        }
     </style>
 </head>
 <body>
@@ -74,6 +80,7 @@
 
     <div class="container">
         <h2>📖 我的云端日记</h2>
+        <div id="tip" class="tip"></div>
         <div id="list"></div>
     </div>
 
@@ -85,14 +92,50 @@
 const API = "https://tree-hole-api.onrender.com";
 let user = JSON.parse(localStorage.getItem("user") || "null");
 
+// 加载日记：优先云端，失败则加载本地备份
 async function load() {
-    if (!user) { location.href = "login.html"; return; }
-    let res = await fetch(API+"/getDiary?uid="+user.id);
-    let list = await res.json();
+    if (!user) { 
+        location.href = "login.html"; 
+        return; 
+    }
+
+    let diaryList = [];
+    let tipDom = document.getElementById("tip");
+    tipDom.innerHTML = "";
+
+    try {
+        // 1. 优先请求云端API
+        const response = await fetch(`${API}/getDiary?uid=${user.id}`);
+        if (response.ok) {
+            diaryList = await response.json();
+            // 云端有数据时，同步到本地（保持数据一致）
+            if (diaryList.length > 0) {
+                localStorage.setItem(`diaries_${user.id}`, JSON.stringify(diaryList));
+            }
+        } else {
+            throw new Error("云端数据获取失败");
+        }
+    } catch (error) {
+        // 2. API失败时，加载本地备份
+        console.error("云端加载失败，使用本地备份:", error);
+        tipDom.innerHTML = "⚠️ 云端暂时不可用，显示本地备份日记";
+        diaryList = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
+    }
+
+    // 渲染日记列表
+    renderDiaryList(diaryList);
+}
+
+// 渲染日记列表（抽离成独立函数，便于复用）
+function renderDiaryList(list) {
     let html = "";
-    list.forEach(i => {
-        html += `<div class="item"><div class="time">${i.time}</div><div class="content">${i.content}</div></div>`;
-    });
+    if (list.length === 0) {
+        html = "<div style='text-align:center; color:#999; padding:20px;'>暂无日记内容，快去写点什么吧～</div>";
+    } else {
+        list.forEach(i => {
+            html += `<div class="item"><div class="time">${i.time}</div><div class="content">${i.content}</div></div>`;
+        });
+    }
     document.getElementById("list").innerHTML = html;
 }
 
@@ -106,7 +149,11 @@ window.onload = function(){
     }
     load();
 };
-function logout(){localStorage.removeItem("user");location.href="index.html";}
+
+function logout(){
+    localStorage.removeItem("user");
+    location.href="index.html";
+}
 </script>
 </body>
 </html>
