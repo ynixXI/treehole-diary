@@ -45,6 +45,7 @@
             background:#fff;
             border-radius:6px;
             line-height:1.6;
+            position: relative;
         }
         .time{
             font-size:14px;
@@ -65,6 +66,18 @@
             color:#C85E44;
             margin:20px 0;
             font-size:16px;
+        }
+        .del-btn{
+            position: absolute;
+            right:15px;
+            top:15px;
+            background:#C85E44;
+            color:#fff;
+            border:none;
+            padding:4px 10px;
+            border-radius:4px;
+            cursor: pointer;
+            font-size:14px;
         }
     </style>
 </head>
@@ -94,7 +107,6 @@ let user = JSON.parse(localStorage.getItem("user") || "null");
 
 // 加载日记：优先云端，失败则加载本地备份
 async function load() {
-    // 【修复 1】解决作用域冲突，使用全局的 user
     if (!user) { 
         location.href = "login.html"; 
         return; 
@@ -105,11 +117,9 @@ async function load() {
     tipDom.innerHTML = "";
 
     try {
-        // 1. 优先请求云端API
         const response = await fetch(`${API}/getDiary?uid=${user.id}`);
         if (response.ok) {
             diaryList = await response.json();
-            // 云端有数据时，同步到本地（保持数据一致）
             if (diaryList.length > 0) {
                 localStorage.setItem(`diaries_${user.id}`, JSON.stringify(diaryList));
             }
@@ -117,39 +127,51 @@ async function load() {
             throw new Error("云端数据获取失败");
         }
     } catch (error) {
-        // 2. API失败时，加载本地备份
         console.error("云端加载失败，使用本地备份:", error);
         tipDom.innerHTML = "⚠️ 云端暂时不可用，显示本地备份日记";
     }
 
-    // 【修复 2】无论成功失败，最后都强制读取本地日记（解决 GitHub 不显示）
     let localDiaries = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
     
-    // 【修复 3】优先使用本地数据，保证一定能显示
     if (localDiaries.length > 0) {
         diaryList = localDiaries;
         tipDom.innerHTML = "⚠️ 云端暂时不可用，显示本地备份日记";
     }
 
-    // 渲染日记列表
     renderDiaryList(diaryList);
 }
 
-// 渲染日记列表（抽离成独立函数，便于复用）
+// 渲染日记列表（已加删除按钮）
 function renderDiaryList(list) {
     let html = "";
     if (list.length === 0) {
         html = "<div style='text-align:center; color:#999; padding:20px;'>暂无日记内容，快去写点什么吧～</div>";
     } else {
-        list.forEach(i => {
-            html += `<div class="item"><div class="time">${i.time}</div><div class="content">${i.content}</div></div>`;
+        list.forEach((i, index) => {
+            html += `
+            <div class="item">
+                <div class="time">${i.time}</div>
+                <div class="content">${i.content}</div>
+                <button class="del-btn" onclick="deleteDiary(${index})">删除</button>
+            </div>`;
         });
     }
     document.getElementById("list").innerHTML = html;
 }
 
+// 删除日记功能
+function deleteDiary(index) {
+    if (!confirm("确定要删除这篇日记吗？删除后无法恢复！")) return;
+    
+    let localDiaries = JSON.parse(localStorage.getItem(`diaries_${user.id}`) || "[]");
+    localDiaries.splice(index, 1);
+    localStorage.setItem(`diaries_${user.id}`, JSON.stringify(localDiaries));
+    
+    renderDiaryList(localDiaries);
+    alert("日记删除成功！");
+}
+
 window.onload = function(){
-    // 【修复 4】不重复覆盖 user，直接用全局
     let userLinks = document.getElementById('userLinks');
     if (user) {
         userLinks.innerHTML = `<a href="profile.html">${user.username}</a> <a href="javascript:void(0)" onclick="logout()">退出</a>`;
